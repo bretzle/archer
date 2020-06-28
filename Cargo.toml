@@ -7,3 +7,11 @@ edition = "2018"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+# Logging
+log = "0.4.8"
+fern = "0.6.0"
+chrono = "0.4.11"
+
+[features]
+default = ["color"]
+color = ["fern/colored"]
