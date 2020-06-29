@@ -8,6 +8,7 @@ extern crate serde_derive;
 use config::Config;
 use display::Display;
 use lazy_static::lazy_static;
+use workspace::Workspace;
 
 mod config;
 mod display;
@@ -15,6 +16,7 @@ mod logging;
 mod task_bar;
 mod tray;
 mod util;
+mod workspace;
 
 lazy_static! {
 	pub static ref CONFIG: Mutex<Config> =
@@ -24,6 +26,9 @@ lazy_static! {
 		display.init();
 		Mutex::new(display)
 	};
+	pub static ref WORKSPACES: Mutex<Vec<Workspace>> =
+		Mutex::new((1..=10).map(Workspace::new).collect());
+	pub static ref WORK_MODE: Mutex<bool> = Mutex::new(CONFIG.lock().unwrap().work_mode);
 }
 
 fn main() {
@@ -53,9 +58,22 @@ fn run() -> Result<(), Box<dyn Error>> {
 	info!("Creating tray icon");
 	tray::create()?;
 
+	info!("Initializing workspaces");
+	lazy_static::initialize(&WORKSPACES);
+
+	if *WORK_MODE.lock().unwrap() {
+		// Work mode is enabled
+		if CONFIG.lock().unwrap().remove_task_bar {
+			info!("Hiding taskbar");
+			task_bar::hide();
+		}
+	}
+
 	loop {}
 }
 
 fn cleanup() -> Result<(), Box<dyn Error>> {
+	task_bar::show();
+
 	Ok(())
 }

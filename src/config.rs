@@ -7,6 +7,7 @@ pub struct Config {
 	pub display_app_bar: bool,
 	pub remove_title_bar: bool,
 	pub remove_task_bar: bool,
+	pub work_mode: bool,
 	pub rules: Vec<Rule>,
 	pub keybindings: Vec<Keybind>,
 }

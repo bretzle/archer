@@ -28,6 +28,7 @@ pub fn ctrlc_handler() {
 		if let Err(e) = crate::cleanup() {
 			error!("Something happend when cleaning up. {}", e);
 		}
+		std::process::exit(0);
 	})
 	.unwrap();
 }

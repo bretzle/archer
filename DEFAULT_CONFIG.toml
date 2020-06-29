@@ -1,6 +1,7 @@
 display_app_bar = true
 remove_title_bar = true
 remove_task_bar = true
+work_mode = true
 
 rules = []
 
