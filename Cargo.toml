@@ -12,6 +12,18 @@ log = "0.4.8"
 fern = "0.6.0"
 chrono = "0.4.11"
 
+ctrlc = { version = "3.1.4", optional = true }
+lazy_static = "1.4.0"
+serde = "1.0.114"
+serde_derive = "1.0.114"
+dirs = "3.0.0"
+toml = "0.5.6"
+
+[dependencies.winapi]
+version = "0.3.9"
+features = ["winuser"]
+
+
 [features]
-default = ["color"]
-color = ["fern/colored"]
+default = ["debug"]
+debug = ["fern/colored", "ctrlc"]
