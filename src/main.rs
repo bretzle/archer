@@ -7,13 +7,17 @@ extern crate serde_derive;
 
 use config::Config;
 use display::Display;
+use event::EventChannel;
 use lazy_static::lazy_static;
-use workspace::Workspace;
+use workspace::*;
 
+mod app_bar;
 mod config;
 mod display;
+mod event;
 mod logging;
 mod task_bar;
+mod tiles;
 mod tray;
 mod util;
 mod workspace;
@@ -26,9 +30,8 @@ lazy_static! {
 		display.init();
 		Mutex::new(display)
 	};
-	pub static ref WORKSPACES: Mutex<Vec<Workspace>> =
-		Mutex::new((1..=10).map(Workspace::new).collect());
 	pub static ref WORK_MODE: Mutex<bool> = Mutex::new(CONFIG.lock().unwrap().work_mode);
+	pub static ref CHANNEL: EventChannel = EventChannel::default();
 }
 
 fn main() {
@@ -68,6 +71,8 @@ fn run() -> Result<(), Box<dyn Error>> {
 			task_bar::hide();
 		}
 	}
+
+	workspace::change(1).expect("Failed to change to workspace @1");
 
 	loop {}
 }

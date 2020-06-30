@@ -1,3 +1,7 @@
+mod error;
+
+pub use error::*;
+
 pub fn panic_handler() {
 	std::panic::set_hook(Box::new(|info| {
 		// print panic message

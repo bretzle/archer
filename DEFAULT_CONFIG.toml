@@ -2,6 +2,9 @@ display_app_bar = true
 remove_title_bar = true
 remove_task_bar = true
 work_mode = true
+margin = 0
+padding = 0
+app_bar_height = 20
 
 rules = []
 
