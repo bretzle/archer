@@ -5,6 +5,10 @@ work_mode = true
 margin = 0
 padding = 0
 app_bar_height = 20
+app_bar_workspace_bg = 1447446
+app_bar_bg = 2892839
+app_bar_font = "Consolas"
+app_bar_font_size = 18
 
 rules = []
 

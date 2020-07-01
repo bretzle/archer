@@ -36,3 +36,22 @@ pub fn ctrlc_handler() {
 	})
 	.unwrap();
 }
+
+pub fn winapi_ptr_to_result<T>(input: *mut T) -> WinResult<*mut T> {
+	if !input.is_null() {
+		Ok(input)
+	} else {
+		Err(WinError::Null)
+	}
+}
+
+pub fn winapi_nullable_to_result<T>(input: T) -> WinResult<T>
+where
+	T: PartialEq<i32>,
+{
+	if input != 0 {
+		Ok(input)
+	} else {
+		Err(WinError::Null)
+	}
+}

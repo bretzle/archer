@@ -37,8 +37,11 @@ lazy_static! {
 fn main() {
 	logging::setup();
 
-	util::panic_handler();
-	util::ctrlc_handler();
+	// #[cfg(not(feature = "debug"))]
+	{
+		util::panic_handler();
+		util::ctrlc_handler();
+	}
 
 	if let Err(e) = run() {
 		error!("An error occured {:?}", e);
@@ -69,6 +72,10 @@ fn run() -> Result<(), Box<dyn Error>> {
 		if CONFIG.lock().unwrap().remove_task_bar {
 			info!("Hiding taskbar");
 			task_bar::hide();
+		}
+
+		if CONFIG.lock().unwrap().display_app_bar {
+			app_bar::create(&*DISPLAY.lock().unwrap())?;
 		}
 	}
 

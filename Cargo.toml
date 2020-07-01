@@ -22,7 +22,7 @@ crossbeam-channel = "0.4"
 
 [dependencies.winapi]
 version = "0.3.9"
-features = ["winuser", "impl-default"]
+features = ["winuser", "impl-default", "windowsx"]
 
 
 [features]

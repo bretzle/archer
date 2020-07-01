@@ -11,6 +11,10 @@ pub struct Config {
 	pub margin: i32,
 	pub padding: i32,
 	pub app_bar_height: i32,
+	pub app_bar_workspace_bg: i32,
+	pub app_bar_bg: i32,
+	pub app_bar_font: String,
+	pub app_bar_font_size: i32,
 	pub rules: Vec<Rule>,
 	pub keybindings: Vec<Keybind>,
 }

@@ -1,3 +1,5 @@
+use super::Tile;
+
 pub struct TileGrid {
 	pub id: i32,
 	pub visible: bool,
@@ -7,6 +9,7 @@ pub struct TileGrid {
 	pub columns: i32,
 	pub height: i32,
 	pub width: i32,
+	pub tiles: Vec<Tile>,
 }
 
 impl TileGrid {
@@ -20,6 +23,7 @@ impl TileGrid {
 			columns: 0,
 			height: 0,
 			width: 0,
+			tiles: vec![],
 		}
 	}
 
