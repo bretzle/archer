@@ -4,7 +4,7 @@ pub fn setup() {
 	fern::Dispatch::new()
 		.format(|out, message, record| {
 			out.finish(format_args!(
-				"[{}][{}][{:<5}] {}",
+				"[{}][{:<14}][{:<5}] {}",
 				chrono::Local::now().format("%H:%M:%S"),
 				record.target(),
 				level(record.level()),
