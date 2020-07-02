@@ -9,15 +9,15 @@ extern crate log;
 #[macro_use]
 extern crate serde_derive;
 
-use crate::display::{get_display_by_hmonitor, get_display_by_idx};
-use app_bar::RedrawAppBarReason;
+use crate::display::get_display_by_hmonitor;
 use config::Config;
 use crossbeam_channel::select;
 use display::Display;
 use event::{Event, EventChannel};
 use lazy_static::lazy_static;
-use std::{collections::HashMap, sync::Mutex};
+use std::{collections::HashMap, error::Error, sync::Mutex};
 use tile_grid::TileGrid;
+use util::WinApiResultError;
 use winapi::shared::windef::HWND;
 use workspace::Workspace;
 
@@ -53,7 +53,7 @@ lazy_static! {
 	pub static ref WORKSPACE_ID: Mutex<i32> = Mutex::new(1);
 }
 
-fn unmanage_everything() -> Result<(), util::WinApiResultError> {
+fn cleanup() -> Result<(), WinApiResultError> {
 	let mut grids = GRIDS.lock().unwrap();
 
 	for grid in grids.iter_mut() {
@@ -68,8 +68,8 @@ fn unmanage_everything() -> Result<(), util::WinApiResultError> {
 	Ok(())
 }
 
-fn on_quit() -> Result<(), util::WinApiResultError> {
-	unmanage_everything()?;
+fn on_quit() -> Result<(), WinApiResultError> {
+	cleanup()?;
 
 	let config = CONFIG.lock().unwrap();
 
@@ -82,66 +82,32 @@ fn on_quit() -> Result<(), util::WinApiResultError> {
 	std::process::exit(0);
 }
 
-pub fn is_visible_workspace(id: i32) -> bool {
-	VISIBLE_WORKSPACES
-		.lock()
-		.unwrap()
-		.values()
-		.any(|v| *v == id)
-}
+fn main() {
+	/*
+		Only show the workspace on the appbar if it exists on the same display.
+		Show the darker color when the workspace exists but is not focused the lighter one if it is.
+			Focused means the workspace has mouse focus
+	*/
+	logging::setup().expect("Failed to setup logging");
 
-pub fn change_workspace(id: i32) -> Result<(), util::WinApiResultError> {
-	let mut grids = GRIDS.lock().unwrap();
+	update::update().expect("Failed to update the program");
 
-	let workspace_settings = CONFIG.lock().unwrap().workspace_settings.clone();
+	ctrlc::set_handler(|| {
+		if let Err(e) = on_quit() {
+			error!("Something happend when cleaning up. {}", e);
+		}
+	})
+	.unwrap();
 
-	let (new_grid_idx, mut new_grid) = grids
-		.iter_mut()
-		.enumerate()
-		.find(|(_, g)| g.id == id)
-		.map(|(i, g)| (i, g.clone()))
-		.unwrap();
-
-	if let Some(setting) = workspace_settings.iter().find(|s| s.id == id) {
-		new_grid.display = get_display_by_idx(setting.monitor);
-	}
-
-	let mut visible_workspaces = VISIBLE_WORKSPACES.lock().unwrap();
-
-	debug!("Drawing the workspace");
-	new_grid.draw_grid();
-	new_grid.show();
-
-	//without this delay there is a slight flickering of the background
-	std::thread::sleep(std::time::Duration::from_millis(10));
-
-	if let Some(id) = visible_workspaces.insert(new_grid.display.hmonitor, new_grid.id) {
-		if new_grid.id != id {
-			if let Some(grid) = grids.iter().find(|g| g.id == id) {
-				debug!("Hiding the current workspace");
-				grid.hide();
-			} else {
-				debug!("Workspace is already visible");
-			}
+	if let Err(e) = run() {
+		error!("An error occured {:?}", e);
+		if let Err(e) = on_quit() {
+			error!("Something happend when cleaning up. {}", e);
 		}
 	}
-
-	debug!("Updating workspace id of monitor");
-	grids.remove(new_grid_idx);
-	grids.insert(new_grid_idx, new_grid);
-
-	*WORKSPACE_ID.lock().unwrap() = id;
-
-	CHANNEL
-		.sender
-		.clone()
-		.send(Event::RedrawAppBar(RedrawAppBarReason::Workspace))
-		.expect("Failed to send redraw-app-bar event");
-
-	Ok(())
 }
 
-fn run() -> Result<(), Box<dyn std::error::Error>> {
+fn run() -> Result<(), Box<dyn Error>> {
 	let receiver = CHANNEL.receiver.clone();
 
 	info!("Initializing config");
@@ -157,7 +123,7 @@ fn run() -> Result<(), Box<dyn std::error::Error>> {
 			.insert(display.hmonitor, 0);
 	}
 
-	change_workspace(1).expect("Failed to change workspace to ID@1");
+	workspace::change(1).expect("Failed to change workspace to ID@1");
 
 	info!("Starting hot reloading of config");
 	config::hot_reloading::start();
@@ -302,31 +268,4 @@ fn run() -> Result<(), Box<dyn std::error::Error>> {
 	}
 
 	Ok(())
-}
-
-fn main() {
-	/*
-		Only show the workspace on the appbar if it exists on the same display.
-		Show the darker color when the workspace exists but is not focused the lighter one if it is.
-			Focused means the workspace has mouse focus
-	*/
-	logging::setup().expect("Failed to setup logging");
-
-	info!("");
-
-	update::update().expect("Failed to update the program");
-
-	ctrlc::set_handler(|| {
-		if let Err(e) = on_quit() {
-			error!("Something happend when cleaning up. {}", e);
-		}
-	})
-	.unwrap();
-
-	if let Err(e) = run() {
-		error!("An error occured {:?}", e);
-		if let Err(e) = on_quit() {
-			error!("Something happend when cleaning up. {}", e);
-		}
-	}
 }

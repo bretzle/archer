@@ -1,4 +1,4 @@
-use crate::{app_bar, task_bar, unmanage_everything, win_event_handler, CONFIG, WORK_MODE};
+use crate::{app_bar, cleanup, task_bar, win_event_handler, CONFIG, WORK_MODE};
 
 pub fn turn_work_mode_off(
 	display_app_bar: bool,
@@ -14,7 +14,7 @@ pub fn turn_work_mode_off(
 		task_bar::show();
 	}
 
-	unmanage_everything()?;
+	cleanup()?;
 	Ok(())
 }
 

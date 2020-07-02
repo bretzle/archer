@@ -1,9 +1,8 @@
 use crate::{
-	change_workspace,
 	display::get_display_by_idx,
 	event::Event,
 	hot_key_manager::{Keybinding, KeybindingType},
-	CHANNEL, GRIDS, VISIBLE_WORKSPACES, WORKSPACE_ID,
+	workspace, CHANNEL, GRIDS, VISIBLE_WORKSPACES, WORKSPACE_ID,
 };
 use winapi::um::processthreadsapi::{CreateProcessA, PROCESS_INFORMATION, STARTUPINFOA};
 
@@ -63,7 +62,7 @@ pub fn handle(kb: Keybinding) -> Result<(), Box<dyn std::error::Error>> {
 				.insert(grid_old_monitor, 0);
 
 			drop(grids);
-			change_workspace(grid_id)
+			workspace::change(grid_id)
 				.expect("Failed to change workspace after moving workspace to different monitor");
 		}
 		KeybindingType::CloseTile => close_tile::handle()?,
@@ -79,11 +78,11 @@ pub fn handle(kb: Keybinding) -> Result<(), Box<dyn std::error::Error>> {
 					let grid = grids.iter_mut().find(|g| g.id == id).unwrap();
 					grid.split(tile.window);
 					drop(grids);
-					change_workspace(id)?;
+					workspace::change(id)?;
 				}
 			}
 		}
-		KeybindingType::ChangeWorkspace(id) => change_workspace(id)?,
+		KeybindingType::ChangeWorkspace(id) => workspace::change(id)?,
 		KeybindingType::ToggleFloatingMode => toggle_floating_mode::handle()?,
 		KeybindingType::ToggleFullscreen => {
 			let mut grids = GRIDS.lock().unwrap();

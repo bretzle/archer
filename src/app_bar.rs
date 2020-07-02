@@ -1,6 +1,6 @@
 use crate::{
-	change_workspace, display::get_primary_display, event::Event, is_visible_workspace,
-	tile_grid::TileGrid, util, CHANNEL, CONFIG, DISPLAYS, GRIDS, WORKSPACE_ID,
+	display::get_primary_display, event::Event, tile_grid::TileGrid, util, workspace, CHANNEL,
+	CONFIG, DISPLAYS, GRIDS, WORKSPACE_ID,
 };
 use lazy_static::lazy_static;
 use std::{collections::HashMap, ffi::CString, sync::Mutex};
@@ -59,9 +59,9 @@ unsafe extern "system" fn window_cb(
 			let mut grids = GRIDS.lock().unwrap();
 			let grid = grids.iter_mut().find(|g| g.id == id).unwrap();
 
-			if !grid.tiles.is_empty() || is_visible_workspace(id) {
+			if !grid.tiles.is_empty() || workspace::is_visible(id) {
 				drop(grids);
-				change_workspace(id).expect("Failed to change workspace");
+				workspace::change(id).expect("Failed to change workspace");
 			}
 		}
 	} else if msg == WM_CREATE {
@@ -124,7 +124,7 @@ fn draw_workspaces(hwnd: HWND) {
 	let workspaces: Vec<&TileGrid> = grids
 		.iter()
 		.filter(|g| {
-			(!g.tiles.is_empty() || is_visible_workspace(g.id)) && g.display.hmonitor == monitor
+			(!g.tiles.is_empty() || workspace::is_visible(g.id)) && g.display.hmonitor == monitor
 		})
 		.collect();
 

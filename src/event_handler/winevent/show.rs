@@ -1,7 +1,7 @@
 use crate::{
-	change_workspace, util,
+	util,
 	window::{gwl_ex_style::GwlExStyle, gwl_style::GwlStyle, Window},
-	CONFIG, GRIDS, WORKSPACE_ID,
+	workspace, CONFIG, GRIDS, WORKSPACE_ID,
 };
 use winapi::shared::windef::HWND;
 
@@ -43,7 +43,7 @@ pub fn handle(hwnd: HWND, ignore_window_style: bool) -> Result<(), Box<dyn std::
 
 		if rule.workspace != -1 {
 			workspace_id = rule.workspace;
-			change_workspace(workspace_id)?;
+			workspace::change(workspace_id)?;
 		}
 
 		if CONFIG.lock().unwrap().remove_title_bar {
