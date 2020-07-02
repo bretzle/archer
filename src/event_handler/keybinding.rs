@@ -5,7 +5,6 @@ use crate::hot_key_manager::KeybindingType;
 use crate::CHANNEL;
 use crate::GRIDS;
 use crate::WORKSPACE_ID;
-use crate::WORK_MODE;
 use log::{error, info};
 use winapi::um::processthreadsapi::CreateProcessA;
 use winapi::um::processthreadsapi::PROCESS_INFORMATION;

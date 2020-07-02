@@ -1,7 +1,6 @@
 use crate::util;
 use crate::win_event_handler::WinEvent;
 use crate::win_event_handler::WinEventType;
-use crate::WORK_MODE;
 use log::debug;
 use winapi::shared::windef::HWND;
 
