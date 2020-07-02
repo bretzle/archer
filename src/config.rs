@@ -12,12 +12,26 @@ pub mod hot_reloading;
 pub struct Rule {
 	#[serde(with = "serde_regex")]
 	pub pattern: Regex,
+	#[serde(default)]
 	pub has_custom_titlebar: bool,
+	#[serde(default = "_true")]
 	pub manage: bool,
+	#[serde(default)]
 	pub chromium: bool,
+	#[serde(default)]
 	pub firefox: bool,
+	#[serde(default = "_true")]
 	pub remove_frame: bool,
+	#[serde(default = "_workid")]
 	pub workspace: i32,
+}
+
+fn _true() -> bool {
+	true
+}
+
+fn _workid() -> i32 {
+	-1
 }
 
 impl Default for Rule {
@@ -49,7 +63,7 @@ impl Default for WorkspaceSetting {
 	}
 }
 
-#[derive(Serialize, Deserialize, Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Config {
 	pub app_bar_height: i32,
 	pub app_bar_bg: i32,

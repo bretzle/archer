@@ -190,6 +190,8 @@ fn run() -> Result<(), Box<dyn std::error::Error>> {
 	info!("Starting hot key manager");
 	hot_key_manager::register()?;
 
+	info!("{:#?}", CONFIG.lock().unwrap());
+
 	loop {
 		select! {
 			recv(receiver) -> maybe_msg => {

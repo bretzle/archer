@@ -137,28 +137,28 @@ key      = "5"
 modifier = "Alt"
 type     = { ChangeWorkspace = 5 }
 
-# [[rules]]
-# pattern = "^(File Explorer|Task Manager)$"
-# manage = false
+[[rules]]
+manage  = false
+pattern = "^(File Explorer|Task Manager)$"
 
-# [[rules]]
-# pattern = "^.*- Mozilla Firefox|Mozilla Firefox$"
-# firefox = true
-# has_custom_titlebar = true
+[[rules]]
+firefox             = true
+has_custom_titlebar = true
+pattern             = "^.*- Mozilla Firefox|Mozilla Firefox$"
 
-# [[rules]]
-# pattern = "^.*- Discord|Discord$"
-# has_custom_titlebar = true
+[[rules]]
+has_custom_titlebar = true
+pattern             = "^.*- Discord|Discord$"
 
-# [[rules]]
-# pattern = "^Spotify Premium$"
-# has_custom_titlebar = true
+[[rules]]
+has_custom_titlebar = true
+pattern             = "^Spotify Premium$"
 
-# [[rules]]
-# pattern = "^.*- Google Chrome$"
-# chromium = true
-# has_custom_titlebar = true
+[[rules]]
+chromium            = true
+has_custom_titlebar = true
+pattern             = "^.*- Google Chrome$"
 
-# [[rules]]
-# pattern = "^.*- Visual Studio Code$"
-# has_custom_titlebar = true
+[[rules]]
+has_custom_titlebar = true
+pattern             = "^.*- Visual Studio Code$"
