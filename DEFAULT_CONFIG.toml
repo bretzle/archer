@@ -1,18 +1,139 @@
-display_app_bar = true
-remove_title_bar = true
 remove_task_bar = true
+app_bar_font_size = 17
+multi_monitor = false
+remove_title_bar = true
+display_app_bar = true
 work_mode = true
-margin = 0
-padding = 0
-app_bar_height = 20
-app_bar_workspace_bg = 1447446
-app_bar_bg = 2892839
-app_bar_font = "Consolas"
-app_bar_font_size = 18
 launch_on_startup = false
+app_bar_font = "Cascadia Mono"
+
+[[keybindings]]
+cmd = "C:\Program Files\Mozilla Firefox\firefox.exe"
+type = "Launch"
+key = "Alt+B"
+
+[[keybindings]]
+cmd = "C:\Windows\system32\Taskmgr.exe"
+type = "Launch"
+key = "Alt+T"
+
+[[keybindings]]
+type = "CloseTile"
+key = "Alt+Q"
+
+[[keybindings]]
+type = "Quit"
+key = "Alt+X"
+
+[[keybindings]]
+direction = "Left"
+type = "Focus"
+key = "Alt+H"
+
+[[keybindings]]
+direction = "Down"
+type = "Focus"
+key = "Alt+J"
+
+[[keybindings]]
+direction = "Up"
+type = "Focus"
+key = "Alt+K"
+
+[[keybindings]]
+direction = "Right"
+type = "Focus"
+key = "Alt+L"
+
+[[keybindings]]
+direction = "Left"
+type = "Swap"
+key = "Alt+Control+H"
+
+[[keybindings]]
+direction = "Down"
+type = "Swap"
+key = "Alt+Control+J"
+
+[[keybindings]]
+direction = "Up"
+type = "Swap"
+key = "Alt+Control+K"
+
+[[keybindings]]
+direction = "Right"
+type = "Swap"
+key = "Alt+Control+L"
+
+[[keybindings]]
+direction = "Vertical"
+type = "Split"
+key = "Alt+Plus"
+
+[[keybindings]]
+direction = "Horizontal"
+type = "Split"
+key = "Alt+Minus"
+
+[[keybindings]]
+type = "ToggleFloatingMode"
+key = "Alt+Control+F"
+
+[[keybindings]]
+type = "ToggleFullscreen"
+key = "Alt+F"
+
+[[keybindings]]
+type = "ToggleWorkMode"
+key = "Alt+Control+W"
+
+[[keybindings]]
+type = "MoveToWorkspace"
+id = 1
+key = "Alt+Shift+1"
+
+[[keybindings]]
+type = "MoveToWorkspace"
+id = 2
+key = "Alt+Shift+2"
+
+[[keybindings]]
+type = "MoveToWorkspace"
+id = 3
+key = "Alt+Shift+3"
+
+[[keybindings]]
+type = "MoveToWorkspace"
+id = 4
+key = "Alt+Shift+4"
+
+[[keybindings]]
+type = "ChangeWorkspace"
+id = 1
+key = "Alt+1"
+
+[[keybindings]]
+type = "ChangeWorkspace"
+id = 2
+key = "Alt+2"
+
+[[keybindings]]
+type = "ChangeWorkspace"
+id = 3
+key = "Alt+3"
+
+[[keybindings]]
+type = "ChangeWorkspace"
+id = 4
+key = "Alt+4"
+
+[[keybindings]]
+type = "ChangeWorkspace"
+id = 5
+key = "Alt+5"
 
 [[rules]]
-pattern = "^File Explorer$"
+pattern = "^(File Explorer|Task Manager)$"
 manage = false
 
 [[rules]]
@@ -21,123 +142,18 @@ firefox = true
 has_custom_titlebar = true
 
 [[rules]]
+pattern = "^.*- Discord|Discord$"
+has_custom_titlebar = true
+
+[[rules]]
+pattern = "^Spotify Premium$"
+has_custom_titlebar = true
+
+[[rules]]
 pattern = "^.*- Google Chrome$"
 chromium = true
 has_custom_titlebar = true
 
 [[rules]]
-pattern = "^(.*- (Visual Studio Code|Discord)|Spotify Premium|Discord)$"
+pattern = "^.*- Visual Studio Code$"
 has_custom_titlebar = true
-
-[[keybindings]]
-type = "CloseTile"
-key = "Q"
-modifier = "Alt"
-
-[[keybindings]]
-type = { Launch = "C:\\Program Files\\Mozilla Firefox\\Firefox.exe"}
-key = "B"
-modifier = "Alt"
-
-# [[keybindings]]
-# type = "Quit"
-# key = "Alt+X"
-
-# [[keybindings]]
-# direction = "Left"
-# type = "Focus"
-# key = "Alt+H"
-
-# [[keybindings]]
-# direction = "Down"
-# type = "Focus"
-# key = "Alt+J"
-
-# [[keybindings]]
-# direction = "Up"
-# type = "Focus"
-# key = "Alt+K"
-
-# [[keybindings]]
-# direction = "Right"
-# type = "Focus"
-# key = "Alt+L"
-
-# [[keybindings]]
-# direction = "Left"
-# type = "Swap"
-# key = "Alt+Control+H"
-
-# [[keybindings]]
-# direction = "Down"
-# type = "Swap"
-# key = "Alt+Control+J"
-
-# [[keybindings]]
-# direction = "Up"
-# type = "Swap"
-# key = "Alt+Control+K"
-
-# [[keybindings]]
-# direction = "Right"
-# type = "Swap"
-# key = "Alt+Control+L"
-
-# [[keybindings]]
-# direction = "Vertical"
-# type = "Split"
-# key = "Alt+Plus"
-
-# [[keybindings]]
-# direction = "Horizontal"
-# type = "Split"
-# key = "Alt+Minus"
-
-# [[keybindings]]
-# type = "ToggleFloatingMode"
-# key = "Alt+F"
-
-[[keybindings]]
-type = "ToggleWorkMode"
-key = "W"
-modifier = "AltControl"
-
-# [[keybindings]]
-# type = "MoveToWorkspace"
-# id = 1
-# key = "Alt+Control+1"
-
-# [[keybindings]]
-# type = "MoveToWorkspace"
-# id = 2
-# key = "Alt+Control+2"
-
-# [[keybindings]]
-# type = "MoveToWorkspace"
-# id = 3
-# key = "Alt+Control+3"
-
-# [[keybindings]]
-# type = "MoveToWorkspace"
-# id = 4
-# key = "Alt+Control+4"
-
-# [[keybindings]]
-# type = "ChangeWorkspace"
-# id = 1
-# key = "Alt+1"
-
-# [[keybindings]]
-# type = "ChangeWorkspace"
-# id = 2
-# key = "Alt+2"
-
-# [[keybindings]]
-# type = "ChangeWorkspace"
-# id = 3
-# key = "Alt+3"
-
-# [[keybindings]]
-# type = "ChangeWorkspace"
-# id = 4
-# key = "Alt+4"

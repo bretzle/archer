@@ -1,6 +1,17 @@
 use strum_macros::EnumString;
 
-#[derive(Clone, Copy, FromPrimitive, ToPrimitive, PartialEq, EnumString, Display, Debug)]
+#[derive(
+	Serialize,
+	Deserialize,
+	Clone,
+	Copy,
+	FromPrimitive,
+	ToPrimitive,
+	PartialEq,
+	EnumString,
+	Display,
+	Debug,
+)]
 #[allow(dead_code)]
 pub enum Key {
 	Enter = 0x0D,

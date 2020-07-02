@@ -18,7 +18,7 @@ pub mod modifier;
 
 pub type Command = String;
 
-#[derive(Clone, Copy, EnumString, PartialEq, Debug)]
+#[derive(Serialize, Deserialize, Clone, Copy, EnumString, PartialEq, Debug)]
 pub enum Direction {
 	Left,
 	Right,
@@ -26,7 +26,7 @@ pub enum Direction {
 	Down,
 }
 
-#[derive(Display, Debug, Clone, PartialEq)]
+#[derive(Serialize, Deserialize, Display, Debug, Clone, PartialEq)]
 pub enum KeybindingType {
 	CloseTile,
 	Quit,
@@ -42,7 +42,7 @@ pub enum KeybindingType {
 	Split(SplitDirection),
 }
 
-#[derive(Debug, Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Keybinding {
 	pub typ: KeybindingType,
 	pub key: Key,
@@ -58,7 +58,7 @@ fn unregister_keybindings<'a>(keybindings: impl Iterator<Item = &'a mut Keybindi
 	for kb in keybindings {
 		if kb.registered {
 			let key = kb.key as u32;
-			let modifier = kb.modifier.bits();
+			let modifier = kb.modifier as u32;
 			let id = key + modifier;
 
 			kb.registered = false;
@@ -81,7 +81,7 @@ fn register_keybindings<'a>(keybindings: impl Iterator<Item = &'a mut Keybinding
 	for kb in keybindings {
 		if !kb.registered {
 			let key = kb.key as u32;
-			let modifier = kb.modifier.bits();
+			let modifier = kb.modifier as u32;
 			let id = key + modifier;
 
 			kb.registered = true;
@@ -138,11 +138,11 @@ pub fn register() -> Result<(), Box<dyn std::error::Error>> {
 					DispatchMessageW(&msg);
 
 					if msg.message == WM_HOTKEY {
-						let modifier = Modifier::from_bits((msg.lParam & 0xffff) as u32).unwrap();
+						let modifier = (msg.lParam & 0xffff) as u32;
 
 						if let Some(key) = Key::from_isize(msg.lParam >> 16) {
 							for kb in &keybindings {
-								if kb.key == key && kb.modifier == modifier {
+								if kb.key == key && kb.modifier as u32 == modifier {
 									CHANNEL
 										.sender
 										.clone()

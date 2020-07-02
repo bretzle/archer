@@ -6,6 +6,8 @@ extern crate num_derive;
 extern crate strum_macros;
 #[macro_use]
 extern crate log;
+#[macro_use]
+extern crate serde_derive;
 
 use crate::display::{get_display_by_hmonitor, get_display_by_idx};
 use app_bar::RedrawAppBarReason;
@@ -40,7 +42,7 @@ mod workspace;
 lazy_static! {
 	pub static ref WORK_MODE: Mutex<bool> = Mutex::new(CONFIG.lock().unwrap().work_mode);
 	pub static ref CONFIG: Mutex<Config> =
-		Mutex::new(config::load().expect("Failed to loading config"));
+		Mutex::new(Config::load().expect("Failed to loading config"));
 	pub static ref DISPLAYS: Mutex<Vec<Display>> = Mutex::new(Vec::new());
 	pub static ref CHANNEL: EventChannel = EventChannel::default();
 	pub static ref GRIDS: Mutex<Vec<TileGrid>> =
@@ -207,7 +209,7 @@ fn run() -> Result<(), Box<dyn std::error::Error>> {
 						hot_key_manager::unregister();
 
 						let config = CONFIG.lock().unwrap().clone();
-						let new_config = config::load().expect("Failed to load config");
+						let new_config = Config::load().expect("Failed to load config");
 						let work_mode = *WORK_MODE.lock().unwrap();
 						let mut draw_app_bar = false;
 

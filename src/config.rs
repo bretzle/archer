@@ -8,8 +8,9 @@ mod macros;
 
 pub mod hot_reloading;
 
-#[derive(Debug, Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Rule {
+	#[serde(with = "serde_regex")]
 	pub pattern: Regex,
 	pub has_custom_titlebar: bool,
 	pub manage: bool,
@@ -33,7 +34,7 @@ impl Default for Rule {
 	}
 }
 
-#[derive(Debug, Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct WorkspaceSetting {
 	pub id: i32,
 	pub monitor: i32,
@@ -48,7 +49,7 @@ impl Default for WorkspaceSetting {
 	}
 }
 
-#[derive(Clone)]
+#[derive(Serialize, Deserialize, Clone)]
 pub struct Config {
 	pub app_bar_height: i32,
 	pub app_bar_bg: i32,
@@ -115,7 +116,8 @@ impl Config {
 			}
 		}
 
-		let content = fs::read_to_string(path)?;
+		// let content = fs::read_to_string(path)?;
+		let content = include_str!("../DEFAULT_CONFIG.toml");
 		let config = toml::from_str(&content)?;
 
 		Ok(config)
