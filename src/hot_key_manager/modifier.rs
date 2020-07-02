@@ -13,10 +13,17 @@
 #[derive(Serialize, Deserialize, Debug, Copy, Clone)]
 #[repr(u32)]
 pub enum Modifier {
+	None = 0,
 	Alt = 1,
 	Control = 2,
 	Shift = 4,
 	AltControl = 3,
 	AltShift = 5,
 	AltControlShift = 7,
+}
+
+impl Default for Modifier {
+	fn default() -> Self {
+		Modifier::None
+	}
 }

@@ -12,130 +12,130 @@ remove_task_bar   = true
 remove_title_bar  = true
 work_mode         = true
 
-# [[keybindings]]
-# cmd = "C:\Program Files\Mozilla Firefox\firefox.exe"
-# type = "Launch"
-# key = "Alt+B"
+[[keybindings]]
+key      = "B"
+modifier = "Alt"
+type     = { Launch = "C:\\Program Files\\Mozilla Firefox\\firefox.exe" }
 
-# [[keybindings]]
-# cmd = "C:\Windows\system32\Taskmgr.exe"
-# type = "Launch"
-# key = "Alt+T"
+[[keybindings]]
+key      = "Q"
+modifier = "Alt"
+type     = "CloseTile"
 
-# [[keybindings]]
-# type = "CloseTile"
-# key = "Alt+Q"
+[[keybindings]]
+key      = "X"
+modifier = "Alt"
+type     = "Quit"
 
-# [[keybindings]]
-# type = "Quit"
-# key = "Alt+X"
+[[keybindings]]
+key      = "H"
+modifier = "Alt"
+type     = { Focus = "Left" }
 
-# [[keybindings]]
-# direction = "Left"
-# type = "Focus"
-# key = "Alt+H"
+[[keybindings]]
+key      = "J"
+modifier = "Alt"
+type     = { Focus = "Down" }
 
-# [[keybindings]]
-# direction = "Down"
-# type = "Focus"
-# key = "Alt+J"
+[[keybindings]]
+key      = "K"
+modifier = "Alt"
+type     = { Focus = "Up" }
 
-# [[keybindings]]
-# direction = "Up"
-# type = "Focus"
-# key = "Alt+K"
+[[keybindings]]
+key      = "L"
+modifier = "Alt"
+type     = { Focus = "Right" }
 
-# [[keybindings]]
-# direction = "Right"
-# type = "Focus"
-# key = "Alt+L"
+[[keybindings]]
+key      = "H"
+modifier = "AltControl"
+type     = { Swap = "Left" }
 
-# [[keybindings]]
-# direction = "Left"
-# type = "Swap"
-# key = "Alt+Control+H"
+[[keybindings]]
+key      = "J"
+modifier = "AltControl"
+type     = { Swap = "Down" }
 
-# [[keybindings]]
-# direction = "Down"
-# type = "Swap"
-# key = "Alt+Control+J"
+[[keybindings]]
+key      = "K"
+modifier = "AltControl"
+type     = { Swap = "Up" }
 
-# [[keybindings]]
-# direction = "Up"
-# type = "Swap"
-# key = "Alt+Control+K"
+[[keybindings]]
+key      = "L"
+modifier = "AltControl"
+type     = { Swap = "Right" }
 
-# [[keybindings]]
-# direction = "Right"
-# type = "Swap"
-# key = "Alt+Control+L"
+[[keybindings]]
+key      = "Plus"
+modifier = "Alt"
+type     = { Split = "Vertical" }
 
-# [[keybindings]]
-# direction = "Vertical"
-# type = "Split"
-# key = "Alt+Plus"
+[[keybindings]]
+key      = "Minus"
+modifier = "Alt"
+type     = { Split = "Horizontal" }
 
-# [[keybindings]]
-# direction = "Horizontal"
-# type = "Split"
-# key = "Alt+Minus"
+[[keybindings]]
+key      = "F"
+modifier = "AltControl"
+type     = "ToggleFloatingMode"
 
-# [[keybindings]]
-# type = "ToggleFloatingMode"
-# key = "Alt+Control+F"
+[[keybindings]]
+key      = "F"
+modifier = "Alt"
+type     = "ToggleFullscreen"
 
-# [[keybindings]]
-# type = "ToggleFullscreen"
-# key = "Alt+F"
+[[keybindings]]
+key      = "W"
+modifier = "AltControl"
+type     = "ToggleWorkMode"
 
-# [[keybindings]]
-# type = "ToggleWorkMode"
-# key = "Alt+Control+W"
+[[keybindings]]
+key      = "1"
+modifier = "AltShift"
+type     = { MoveToWorkspace = 1 }
 
-# [[keybindings]]
-# type = "MoveToWorkspace"
-# id = 1
-# key = "Alt+Shift+1"
+[[keybindings]]
+key      = "2"
+modifier = "AltShift"
+type     = { MoveToWorkspace = 2 }
 
-# [[keybindings]]
-# type = "MoveToWorkspace"
-# id = 2
-# key = "Alt+Shift+2"
+[[keybindings]]
+key      = "3"
+modifier = "AltShift"
+type     = { MoveToWorkspace = 3 }
 
-# [[keybindings]]
-# type = "MoveToWorkspace"
-# id = 3
-# key = "Alt+Shift+3"
+[[keybindings]]
+key      = "4"
+modifier = "AltShift"
+type     = { MoveToWorkspace = 4 }
 
-# [[keybindings]]
-# type = "MoveToWorkspace"
-# id = 4
-# key = "Alt+Shift+4"
+[[keybindings]]
+key      = "1"
+modifier = "Alt"
+type     = { ChangeWorkspace = 1 }
 
-# [[keybindings]]
-# type = "ChangeWorkspace"
-# id = 1
-# key = "Alt+1"
+[[keybindings]]
+key      = "2"
+modifier = "Alt"
+type     = { ChangeWorkspace = 2 }
 
-# [[keybindings]]
-# type = "ChangeWorkspace"
-# id = 2
-# key = "Alt+2"
+[[keybindings]]
+key      = "3"
+modifier = "Alt"
+type     = { ChangeWorkspace = 3 }
 
-# [[keybindings]]
-# type = "ChangeWorkspace"
-# id = 3
-# key = "Alt+3"
+[[keybindings]]
+key      = "4"
+modifier = "Alt"
+type     = { ChangeWorkspace = 4 }
 
-# [[keybindings]]
-# type = "ChangeWorkspace"
-# id = 4
-# key = "Alt+4"
-
-# [[keybindings]]
-# type = "ChangeWorkspace"
-# id = 5
-# key = "Alt+5"
+[[keybindings]]
+key      = "5"
+modifier = "Alt"
+type     = { ChangeWorkspace = 5 }
 
 # [[rules]]
 # pattern = "^(File Explorer|Task Manager)$"

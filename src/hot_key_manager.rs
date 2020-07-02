@@ -44,10 +44,13 @@ pub enum KeybindingType {
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Keybinding {
+	#[serde(rename = "type")]
 	pub typ: KeybindingType,
 	pub key: Key,
+	#[serde(default = "Modifier::default")]
 	pub modifier: Modifier,
-	pub registered: bool,
+	#[serde(default)]
+	registered: bool,
 }
 
 lazy_static! {
