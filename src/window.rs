@@ -1,4 +1,4 @@
-use crate::{config::Rule, util, util::rect_to_string, CONFIG};
+use crate::{config::Rule, util, CONFIG};
 use gwl_ex_style::GwlExStyle;
 use gwl_style::GwlStyle;
 use winapi::{

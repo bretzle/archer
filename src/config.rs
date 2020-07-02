@@ -3,9 +3,6 @@ use fs::File;
 use regex::Regex;
 use std::{error::Error, fs, io::Write, path::PathBuf};
 
-#[macro_use]
-mod macros;
-
 pub mod hot_reloading;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
