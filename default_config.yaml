@@ -29,6 +29,10 @@ keybindings:
     key: Alt+B
     cmd: C:\Program Files\Mozilla Firefox\firefox.exe
 
+  - type: Launch
+    key: Alt+T
+    cmd: C:\Windows\system32\Taskmgr.exe
+
   - type: CloseTile
     key: Alt+Q
 

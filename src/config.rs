@@ -132,7 +132,8 @@ pub fn load() -> Result<Config, Box<dyn std::error::Error>> {
 		None => "",
 	};
 
-	let file_content = std::fs::read_to_string(path)?;
+	// let file_content = std::fs::read_to_string(path)?;
+	let file_content = include_str!("../default_config.yaml");
 
 	let vec_yaml = yaml_rust::YamlLoader::load_from_str(&file_content)?;
 	let yaml = if !vec_yaml.is_empty() {
