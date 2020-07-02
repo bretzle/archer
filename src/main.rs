@@ -37,258 +37,258 @@ mod window;
 mod workspace;
 
 lazy_static! {
-    pub static ref WORK_MODE: Mutex<bool> = Mutex::new(CONFIG.lock().unwrap().work_mode);
-    pub static ref CONFIG: Mutex<Config> =
-        Mutex::new(config::load().expect("Failed to loading config"));
-    pub static ref DISPLAY: Mutex<Display> = {
-        let mut display = Display::default();
-        display.init();
-        Mutex::new(display)
-    };
-    pub static ref CHANNEL: EventChannel = EventChannel::default();
-    pub static ref GRIDS: Mutex<Vec<TileGrid>> = {
-        Mutex::new(
-            (1..11)
-                .map(|i| {
-                    let mut grid = TileGrid::new(i);
-                    let config = CONFIG.lock().unwrap();
+	pub static ref WORK_MODE: Mutex<bool> = Mutex::new(CONFIG.lock().unwrap().work_mode);
+	pub static ref CONFIG: Mutex<Config> =
+		Mutex::new(config::load().expect("Failed to loading config"));
+	pub static ref DISPLAY: Mutex<Display> = {
+		let mut display = Display::default();
+		display.init();
+		Mutex::new(display)
+	};
+	pub static ref CHANNEL: EventChannel = EventChannel::default();
+	pub static ref GRIDS: Mutex<Vec<TileGrid>> = {
+		Mutex::new(
+			(1..11)
+				.map(|i| {
+					let mut grid = TileGrid::new(i);
+					let config = CONFIG.lock().unwrap();
 
-                    grid.height =
-                        DISPLAY.lock().unwrap().height - config.margin * 2 - config.padding * 2;
-                    grid.width =
-                        DISPLAY.lock().unwrap().width - config.margin * 2 - config.padding * 2;
+					grid.height =
+						DISPLAY.lock().unwrap().height - config.margin * 2 - config.padding * 2;
+					grid.width =
+						DISPLAY.lock().unwrap().width - config.margin * 2 - config.padding * 2;
 
-                    if config.display_app_bar {
-                        grid.height -= config.app_bar_height;
-                    }
+					if config.display_app_bar {
+						grid.height -= config.app_bar_height;
+					}
 
-                    grid
-                })
-                .collect::<Vec<TileGrid>>(),
-        )
-    };
-    pub static ref WORKSPACES: Mutex<Vec<Workspace>> =
-        Mutex::new((1..11).map(Workspace::new).collect::<Vec<Workspace>>(),);
-    pub static ref WORKSPACE_ID: Mutex<i32> = Mutex::new(1);
+					grid
+				})
+				.collect::<Vec<TileGrid>>(),
+		)
+	};
+	pub static ref WORKSPACES: Mutex<Vec<Workspace>> =
+		Mutex::new((1..11).map(Workspace::new).collect::<Vec<Workspace>>(),);
+	pub static ref WORKSPACE_ID: Mutex<i32> = Mutex::new(1);
 }
 
 fn unmanage_everything() -> Result<(), util::WinApiResultError> {
-    let mut grids = GRIDS.lock().unwrap();
+	let mut grids = GRIDS.lock().unwrap();
 
-    for grid in grids.iter_mut() {
-        for tile in &mut grid.tiles.clone() {
-            grid.close_tile_by_window_id(tile.window.id);
-            tile.window.reset_style()?;
-            tile.window.update_style();
-            tile.window.reset_pos()?;
-        }
-    }
+	for grid in grids.iter_mut() {
+		for tile in &mut grid.tiles.clone() {
+			grid.close_tile_by_window_id(tile.window.id);
+			tile.window.reset_style()?;
+			tile.window.update_style();
+			tile.window.reset_pos()?;
+		}
+	}
 
-    Ok(())
+	Ok(())
 }
 
 fn on_quit() -> Result<(), util::WinApiResultError> {
-    unmanage_everything()?;
+	unmanage_everything()?;
 
-    let config = CONFIG.lock().unwrap();
+	let config = CONFIG.lock().unwrap();
 
-    if config.remove_task_bar {
-        task_bar::show();
-    }
+	if config.remove_task_bar {
+		task_bar::show();
+	}
 
-    win_event_handler::unregister()?;
+	win_event_handler::unregister()?;
 
-    std::process::exit(0);
+	std::process::exit(0);
 }
 
 pub fn change_workspace(id: i32) -> Result<(), util::WinApiResultError> {
-    let mut grids = GRIDS.lock().unwrap();
-    let mut gid = WORKSPACE_ID.lock().unwrap();
+	let mut grids = GRIDS.lock().unwrap();
+	let mut gid = WORKSPACE_ID.lock().unwrap();
 
-    let old_id = *gid;
-    *gid = id;
+	let old_id = *gid;
+	*gid = id;
 
-    let mut grid = grids.iter_mut().find(|g| g.id == *gid).unwrap();
-    grid.visible = true;
+	let mut grid = grids.iter_mut().find(|g| g.id == *gid).unwrap();
+	grid.visible = true;
 
-    if old_id == id {
-        debug!("Workspace is already selected");
-        return Ok(());
-    }
+	if old_id == id {
+		debug!("Workspace is already selected");
+		return Ok(());
+	}
 
-    debug!("Showing the next workspace");
-    grid.visible = true;
-    grid.draw_grid();
-    grid.show();
+	debug!("Showing the next workspace");
+	grid.visible = true;
+	grid.draw_grid();
+	grid.show();
 
-    //without this delay there is a slight flickering of the background
-    std::thread::sleep(std::time::Duration::from_millis(5));
+	//without this delay there is a slight flickering of the background
+	std::thread::sleep(std::time::Duration::from_millis(5));
 
-    debug!("Hiding the current workspace");
-    let mut grid = grids.iter_mut().find(|g| g.id == old_id).unwrap();
-    grid.visible = false;
-    grid.hide();
+	debug!("Hiding the current workspace");
+	let mut grid = grids.iter_mut().find(|g| g.id == old_id).unwrap();
+	grid.visible = false;
+	grid.hide();
 
-    drop(grids);
-    drop(gid);
+	drop(grids);
+	drop(gid);
 
-    CHANNEL
-        .sender
-        .clone()
-        .send(Event::RedrawAppBar(RedrawAppBarReason::Workspace))
-        .expect("Failed to send redraw-app-bar event");
+	CHANNEL
+		.sender
+		.clone()
+		.send(Event::RedrawAppBar(RedrawAppBarReason::Workspace))
+		.expect("Failed to send redraw-app-bar event");
 
-    Ok(())
+	Ok(())
 }
 
 fn run() -> Result<(), Box<dyn std::error::Error>> {
-    let receiver = CHANNEL.receiver.clone();
+	let receiver = CHANNEL.receiver.clone();
 
-    info!("Initializing config");
-    lazy_static::initialize(&CONFIG);
+	info!("Initializing config");
+	lazy_static::initialize(&CONFIG);
 
-    info!("Starting hot reloading of config");
-    config::hot_reloading::start();
+	info!("Starting hot reloading of config");
+	config::hot_reloading::start();
 
-    startup::set_launch_on_startup(CONFIG.lock().unwrap().launch_on_startup)?;
+	startup::set_launch_on_startup(CONFIG.lock().unwrap().launch_on_startup)?;
 
-    info!("Initializing display");
-    lazy_static::initialize(&DISPLAY);
+	info!("Initializing display");
+	lazy_static::initialize(&DISPLAY);
 
-    info!("Initializing taskbar");
-    task_bar::init();
+	info!("Initializing taskbar");
+	task_bar::init();
 
-    info!("Creating tray icon");
-    tray::create()?;
+	info!("Creating tray icon");
+	tray::create()?;
 
-    info!("Initializing workspaces");
-    lazy_static::initialize(&WORKSPACES);
+	info!("Initializing workspaces");
+	lazy_static::initialize(&WORKSPACES);
 
-    if *WORK_MODE.lock().unwrap() {
-        if CONFIG.lock().unwrap().remove_task_bar {
-            info!("Hiding taskbar");
-            task_bar::hide();
-        }
+	if *WORK_MODE.lock().unwrap() {
+		if CONFIG.lock().unwrap().remove_task_bar {
+			info!("Hiding taskbar");
+			task_bar::hide();
+		}
 
-        if CONFIG.lock().unwrap().display_app_bar {
-            app_bar::create(&*DISPLAY.lock().unwrap())?;
-        }
+		if CONFIG.lock().unwrap().display_app_bar {
+			app_bar::create(&*DISPLAY.lock().unwrap())?;
+		}
 
-        info!("Registering windows event handler");
-        win_event_handler::register()?;
-    }
+		info!("Registering windows event handler");
+		win_event_handler::register()?;
+	}
 
-    change_workspace(1).expect("Failed to change workspace to ID@1");
+	change_workspace(1).expect("Failed to change workspace to ID@1");
 
-    info!("Starting hot key manager");
-    hot_key_manager::register()?;
+	info!("Starting hot key manager");
+	hot_key_manager::register()?;
 
-    loop {
-        select! {
-            recv(receiver) -> maybe_msg => {
-                let msg = maybe_msg.unwrap();
-                match msg {
-                    Event::Keybinding(kb) => event_handler::keybinding::handle(kb)?,
-                    Event::RedrawAppBar(reason) => app_bar::redraw(reason),
-                    Event::WinEvent(ev) => event_handler::winevent::handle(ev)?,
-                    Event::Exit => {
-                        tray::remove_icon(*tray::WINDOW.lock().unwrap() as HWND);
-                        on_quit()?;
-                        break;
-                    },
-                    Event::ReloadConfig => {
-                        info!("Reloading Config");
+	loop {
+		select! {
+			recv(receiver) -> maybe_msg => {
+				let msg = maybe_msg.unwrap();
+				match msg {
+					Event::Keybinding(kb) => event_handler::keybinding::handle(kb)?,
+					Event::RedrawAppBar(reason) => app_bar::redraw(reason),
+					Event::WinEvent(ev) => event_handler::winevent::handle(ev)?,
+					Event::Exit => {
+						tray::remove_icon(*tray::WINDOW.lock().unwrap() as HWND);
+						on_quit()?;
+						break;
+					},
+					Event::ReloadConfig => {
+						info!("Reloading Config");
 
-                        hot_key_manager::unregister();
+						hot_key_manager::unregister();
 
-                        let config = CONFIG.lock().unwrap().clone();
-                        let new_config = config::load().expect("Failed to load config");
-                        let work_mode = *WORK_MODE.lock().unwrap();
+						let config = CONFIG.lock().unwrap().clone();
+						let new_config = config::load().expect("Failed to load config");
+						let work_mode = *WORK_MODE.lock().unwrap();
 
-                        if work_mode {
-                            if config.display_app_bar && !new_config.display_app_bar {
-                                app_bar::close();
-                                let mut grids = GRIDS.lock().unwrap();
+						if work_mode {
+							if config.display_app_bar && !new_config.display_app_bar {
+								app_bar::close();
+								let mut grids = GRIDS.lock().unwrap();
 
-                                for grid in grids.iter_mut() {
-                                    grid.height += config.app_bar_height;
-                                }
+								for grid in grids.iter_mut() {
+									grid.height += config.app_bar_height;
+								}
 
-                            } else if !config.display_app_bar && new_config.display_app_bar {
-                                app_bar::create(&*DISPLAY.lock().unwrap())?;
-                                let mut grids = GRIDS.lock().unwrap();
+							} else if !config.display_app_bar && new_config.display_app_bar {
+								app_bar::create(&*DISPLAY.lock().unwrap())?;
+								let mut grids = GRIDS.lock().unwrap();
 
-                                for grid in grids.iter_mut() {
-                                    grid.height -= new_config.app_bar_height;
-                                }
-                            }
-                            if config.remove_task_bar && !new_config.remove_task_bar {
-                                task_bar::show();
-                            } else if !config.remove_task_bar && new_config.remove_task_bar {
-                                task_bar::hide();
-                            }
-                        } 
+								for grid in grids.iter_mut() {
+									grid.height -= new_config.app_bar_height;
+								}
+							}
+							if config.remove_task_bar && !new_config.remove_task_bar {
+								task_bar::show();
+							} else if !config.remove_task_bar && new_config.remove_task_bar {
+								task_bar::hide();
+							}
+						}
 
-                        if config.remove_title_bar && !new_config.remove_title_bar {
-                            let mut grids = GRIDS.lock().unwrap();
+						if config.remove_title_bar && !new_config.remove_title_bar {
+							let mut grids = GRIDS.lock().unwrap();
 
-                            for grid in grids.iter_mut() {
-                                for tile in &mut grid.tiles {
-                                    tile.window.reset_style()?;
-                                    tile.window.update_style();
-                                }
-                            }
-                        } else if !config.remove_title_bar && new_config.remove_title_bar {
-                            let mut grids = GRIDS.lock().unwrap();
+							for grid in grids.iter_mut() {
+								for tile in &mut grid.tiles {
+									tile.window.reset_style()?;
+									tile.window.update_style();
+								}
+							}
+						} else if !config.remove_title_bar && new_config.remove_title_bar {
+							let mut grids = GRIDS.lock().unwrap();
 
-                            for grid in grids.iter_mut() {
-                                for tile in &mut grid.tiles {
-                                    tile.window.remove_title_bar();
-                                    tile.window.update_style();
-                                }
-                            }
-                        }
+							for grid in grids.iter_mut() {
+								for tile in &mut grid.tiles {
+									tile.window.remove_title_bar();
+									tile.window.update_style();
+								}
+							}
+						}
 
-                        if config.launch_on_startup != new_config.launch_on_startup {
-                            startup::set_launch_on_startup(new_config.launch_on_startup)?;
-                        }
+						if config.launch_on_startup != new_config.launch_on_startup {
+							startup::set_launch_on_startup(new_config.launch_on_startup)?;
+						}
 
-                        *CONFIG.lock().unwrap() = new_config;
-                            
-                        hot_key_manager::register()?;
+						*CONFIG.lock().unwrap() = new_config;
 
-                        let mut grids = GRIDS.lock().unwrap();
-                        let grid = grids
-                            .iter_mut()
-                            .find(|g| g.id == *WORKSPACE_ID.lock().unwrap())
-                            .unwrap();
+						hot_key_manager::register()?;
 
-                        grid.draw_grid();
-                    }
-                }
-            }
-        }
-    }
+						let mut grids = GRIDS.lock().unwrap();
+						let grid = grids
+							.iter_mut()
+							.find(|g| g.id == *WORKSPACE_ID.lock().unwrap())
+							.unwrap();
 
-    Ok(())
+						grid.draw_grid();
+					}
+				}
+			}
+		}
+	}
+
+	Ok(())
 }
 
 fn main() {
-    logging::setup().expect("Failed to setup logging");
+	logging::setup().expect("Failed to setup logging");
 
-    update::update().expect("Failed to update the program");
+	update::update().expect("Failed to update the program");
 
-    ctrlc::set_handler(|| {
-        if let Err(e) = on_quit() {
-            error!("Something happend when cleaning up. {}", e);
-        }
-    })
-    .unwrap();
+	ctrlc::set_handler(|| {
+		if let Err(e) = on_quit() {
+			error!("Something happend when cleaning up. {}", e);
+		}
+	})
+	.unwrap();
 
-    if let Err(e) = run() {
-        error!("An error occured {:?}", e);
-        if let Err(e) = on_quit() {
-            error!("Something happend when cleaning up. {}", e);
-        }
-    }
+	if let Err(e) = run() {
+		error!("An error occured {:?}", e);
+		if let Err(e) = on_quit() {
+			error!("Something happend when cleaning up. {}", e);
+		}
+	}
 }
