@@ -1,6 +1,6 @@
 use crate::{
-	app_bar::RedrawAppBarReason, display::get_display_by_idx, event::Event,
-	util::WinApiResultError, CHANNEL, CONFIG, GRIDS, VISIBLE_WORKSPACES, WORKSPACE_ID,
+	app_bar::RedrawAppBarReason, display::get_display_by_idx, event::Event, util::WinApiResult,
+	CHANNEL, CONFIG, GRIDS, VISIBLE_WORKSPACES, WORKSPACE_ID,
 };
 
 pub struct Workspace {
@@ -22,7 +22,7 @@ pub fn is_visible(id: i32) -> bool {
 		.any(|v| *v == id)
 }
 
-pub fn change(id: i32) -> Result<(), WinApiResultError> {
+pub fn change(id: i32) -> WinApiResult<()> {
 	let mut grids = GRIDS.lock().unwrap();
 
 	let workspace_settings = CONFIG.lock().unwrap().workspace_settings.clone();

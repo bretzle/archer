@@ -8,7 +8,7 @@ use winapi::{
 	},
 };
 
-pub fn get_title_of_window(window_handle: HWND) -> Result<String, WinApiResultError> {
+pub fn get_title_of_window(window_handle: HWND) -> WinApiResult<String> {
 	let mut buffer = [0; 0x200];
 
 	unsafe {

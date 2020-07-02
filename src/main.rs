@@ -17,7 +17,7 @@ use event::{Event, EventChannel};
 use lazy_static::lazy_static;
 use std::{collections::HashMap, error::Error, sync::Mutex};
 use tile_grid::TileGrid;
-use util::WinApiResultError;
+use util::WinApiResult;
 use winapi::shared::windef::HWND;
 use workspace::Workspace;
 
@@ -53,7 +53,7 @@ lazy_static! {
 	pub static ref WORKSPACE_ID: Mutex<i32> = Mutex::new(1);
 }
 
-fn cleanup() -> Result<(), WinApiResultError> {
+fn cleanup() -> WinApiResult<()> {
 	let mut grids = GRIDS.lock().unwrap();
 
 	for grid in grids.iter_mut() {
@@ -68,7 +68,7 @@ fn cleanup() -> Result<(), WinApiResultError> {
 	Ok(())
 }
 
-fn on_quit() -> Result<(), WinApiResultError> {
+fn on_quit() -> WinApiResult<()> {
 	cleanup()?;
 
 	let config = CONFIG.lock().unwrap();
