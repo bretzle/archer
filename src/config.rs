@@ -1,13 +1,7 @@
-use crate::{
-	hot_key_manager::{key::Key, modifier::Modifier, Direction, Keybinding, KeybindingType},
-	tile_grid::SplitDirection,
-};
+use crate::hot_key_manager::Keybinding;
+use fs::File;
 use regex::Regex;
-use std::{
-	io::{Error, ErrorKind, Write},
-	str::FromStr,
-};
-use winapi::um::wingdi::{GetBValue, GetGValue, GetRValue, RGB};
+use std::{error::Error, fs, io::Write, path::PathBuf};
 
 #[macro_use]
 mod macros;
@@ -98,205 +92,32 @@ impl Default for Config {
 }
 
 impl Config {
-	/// Creates a new default config.
-	pub fn new() -> Self {
-		Self::default()
-	}
-}
+	pub fn load() -> Result<Self, Box<dyn Error>> {
+		let mut path = match dirs::config_dir() {
+			Some(path) => path,
+			None => PathBuf::new(),
+		};
 
-pub fn load() -> Result<Config, Box<dyn std::error::Error>> {
-	let mut pathbuf = match dirs::config_dir() {
-		Some(path) => path,
-		None => std::path::PathBuf::new(),
-	};
+		path.push("wtm");
 
-	pathbuf.push("wtm");
-
-	if !pathbuf.exists() {
-		debug!("wtm folder doesn't exist yet. Creating the folder");
-		std::fs::create_dir(pathbuf.clone())?;
-	}
-
-	pathbuf.push("config.yaml");
-
-	if !pathbuf.exists() {
-		debug!("config file doesn't exist yet. Creating the file");
-		if let Ok(mut file) = std::fs::File::create(pathbuf.clone()) {
-			debug!("Initializing config with default values");
-			file.write_all(include_bytes!("../default_config.yaml"))?;
+		if !path.exists() {
+			debug!("Config folder doesn't exist. Creating folder.");
+			fs::create_dir(path.clone())?;
 		}
-	}
 
-	let path = match pathbuf.to_str() {
-		Some(string) => string,
-		None => "",
-	};
+		path.push("config.toml");
 
-	// let file_content = std::fs::read_to_string(path)?;
-	let file_content = include_str!("../default_config.yaml");
-
-	let vec_yaml = yaml_rust::YamlLoader::load_from_str(&file_content)?;
-	let yaml = if !vec_yaml.is_empty() {
-		&vec_yaml[0]
-	} else {
-		&yaml_rust::Yaml::Null
-	};
-
-	let mut config = Config::new();
-
-	if let yaml_rust::yaml::Yaml::Hash(hash) = yaml {
-		for entry in hash.iter() {
-			let (key, value) = entry;
-			let config_key = key.as_str().ok_or("Invalid config key")?;
-
-			if_str!(config, config_key, value, app_bar_font);
-			if_i32!(config, config_key, value, app_bar_bg);
-			if_i32!(config, config_key, value, app_bar_font_size);
-			if_i32!(config, config_key, value, app_bar_height);
-			if_i32!(config, config_key, value, margin);
-			if_i32!(config, config_key, value, padding);
-			if_bool!(config, config_key, value, light_theme);
-			if_bool!(config, config_key, value, launch_on_startup);
-			if_bool!(config, config_key, value, work_mode);
-			if_bool!(config, config_key, value, multi_monitor);
-			if_bool!(config, config_key, value, remove_title_bar);
-			if_bool!(config, config_key, value, remove_task_bar);
-			if_bool!(config, config_key, value, display_app_bar);
-
-			if config_key == "workspaces" {
-				let workspaces = value.as_vec().ok_or("workspaces has to be an array")?;
-
-				for yaml_workspace in workspaces {
-					if let yaml_rust::Yaml::Hash(hash) = yaml_workspace {
-						let mut workspace = WorkspaceSetting::default();
-
-						for entry in hash.iter() {
-							let (key, value) = entry;
-							let hash_key = key.as_str().ok_or("Invalid config key")?;
-
-							if_i32!(workspace, hash_key, value, id);
-							if_i32!(workspace, hash_key, value, monitor);
-						}
-
-						config.workspace_settings.push(workspace);
-					}
-				}
-			}
-
-			if config_key == "rules" {
-				let rules = value.as_vec().ok_or("rules has to be an array")?;
-
-				for yaml_rule in rules {
-					if let yaml_rust::Yaml::Hash(hash) = yaml_rule {
-						let mut rule = Rule::default();
-
-						for entry in hash.iter() {
-							let (key, value) = entry;
-							let hash_key = key.as_str().ok_or("Invalid config key")?;
-
-							if_regex!(rule, hash_key, value, pattern);
-							if_bool!(rule, hash_key, value, has_custom_titlebar);
-							if_bool!(rule, hash_key, value, remove_frame);
-							if_bool!(rule, hash_key, value, manage);
-							if_bool!(rule, hash_key, value, chromium);
-							if_bool!(rule, hash_key, value, firefox);
-							if_i32!(rule, hash_key, value, workspace);
-						}
-
-						config.rules.push(rule);
-					}
-				}
-			}
-
-			if config_key == "keybindings" {
-				let bindings = value.as_vec().ok_or("keybindings has to be an array")?;
-
-				for binding in bindings {
-					let typ_str = ensure_str!("keybinding", binding, type);
-					let key_combo = ensure_str!("keybinding", binding, key);
-					let key_combo_parts = key_combo.split('+').collect::<Vec<&str>>();
-					let modifier_count = key_combo_parts.len() - 1;
-
-					let modifier = key_combo_parts
-						.iter()
-						.take(modifier_count)
-						.map(|x| match *x {
-							"Alt" => Modifier::ALT,
-							"Control" => Modifier::CONTROL,
-							"Shift" => Modifier::SHIFT,
-							_ => Modifier::default(),
-						})
-						.fold(Modifier::default(), |mut sum, crr| {
-							sum.insert(crr);
-
-							sum
-						});
-
-					let key = key_combo_parts
-						.iter()
-						.last()
-						.and_then(|x| Key::from_str(x).ok())
-						.ok_or("Invalid key")?;
-
-					let typ =
-						match typ_str {
-							"Launch" => KeybindingType::Launch(
-								ensure_str!("keybinding of type Launch", binding, cmd).to_string(),
-							),
-							"CloseTile" => KeybindingType::CloseTile,
-							"Quit" => KeybindingType::Quit,
-							"ChangeWorkspace" => KeybindingType::ChangeWorkspace(ensure_i32!(
-								"keybinding of type ChangeWorkspace",
-								binding,
-								id
-							)),
-							"MoveToWorkspace" => KeybindingType::MoveToWorkspace(ensure_i32!(
-								"keybinding of type MoveToWorkspace",
-								binding,
-								id
-							)),
-							"MoveWorkspaceToMonitor" => {
-								KeybindingType::MoveWorkspaceToMonitor(ensure_i32!(
-									"keybinding of type MoveWorkspaceToMonitor",
-									binding,
-									monitor
-								))
-							}
-							"ToggleFloatingMode" => KeybindingType::ToggleFloatingMode,
-							"ToggleFullscreen" => KeybindingType::ToggleFullscreen,
-							"ToggleWorkMode" => KeybindingType::ToggleWorkMode,
-							"Focus" => KeybindingType::Focus(Direction::from_str(ensure_str!(
-								"keybinding of type Focus",
-								binding,
-								direction
-							))?),
-							"Swap" => KeybindingType::Swap(Direction::from_str(ensure_str!(
-								"keybinding of type Swap",
-								binding,
-								direction
-							))?),
-							"Split" => KeybindingType::Split(SplitDirection::from_str(
-								ensure_str!("keybinding of type Split", binding, direction),
-							)?),
-							x => {
-								return Err(Box::new(Error::new(
-									ErrorKind::InvalidInput,
-									"unknown type ".to_string() + x,
-								)))
-							}
-						};
-
-					config.keybindings.push(Keybinding {
-						key,
-						modifier,
-						typ,
-						registered: false,
-					});
-				}
+		if !path.exists() {
+			debug!("Config file doesn't exist. Creating file.");
+			if let Ok(mut file) = File::create(path.clone()) {
+				debug!("Initializeing config with default values");
+				file.write_all(include_bytes!("../DEFAULT_CONFIG.toml"))?;
 			}
 		}
-		//Convert normal hexadecimal color format to winapi hexadecimal color format
-		convert_color_format!(config.app_bar_bg);
+
+		let content = fs::read_to_string(path)?;
+		let config = toml::from_str(&content)?;
+
+		Ok(config)
 	}
-	Ok(config)
 }
