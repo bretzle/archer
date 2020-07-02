@@ -1,43 +1,36 @@
-use lazy_static::lazy_static;
+use log::Level;
 
-#[cfg(debug_assertions)]
-lazy_static! {
-    pub static ref LOG_FILE: String = String::from("output.log");
+pub fn setup() -> Result<(), log::SetLoggerError> {
+	fern::Dispatch::new()
+		.format(|out, message, record| {
+			out.finish(format_args!(
+				"[{}][{:<14}][{:<5}] {}",
+				chrono::Local::now().format("%H:%M:%S"),
+				record.target(),
+				level(record.level()),
+				message
+			))
+		})
+		.level(log::LevelFilter::Trace)
+		.chain(std::io::stdout())
+		.apply()
 }
 
-#[cfg(not(debug_assertions))]
-lazy_static! {
-    pub static ref LOG_FILE: String = {
-        let mut path = dirs::config_dir().unwrap();
-        path.push("wwm");
-        path.push("output.log");
-        path.into_os_string().into_string().unwrap()
-    };
+#[cfg(not(feature = "debug"))]
+fn level(level: Level) -> Level {
+	level
 }
 
-pub fn setup() -> Result<(), Box<dyn std::error::Error>> {
-    let mut builder = fern::Dispatch::new()
-        .format(move |out, message, record| {
-            out.finish(format_args!(
-                "[{} {:5} {}] {}",
-                chrono::Local::now().format("%Y-%m-%d %H:%M:%S"),
-                record.level(),
-                record.target(),
-                message
-            ))
-        })
-        .level(log::LevelFilter::Debug)
-        .chain(fern::log_file(LOG_FILE.as_str()).unwrap())
-        .chain(std::io::stdout());
+#[cfg(feature = "debug")]
+fn level(level: Level) -> fern::colors::WithFgColor<Level> {
+	use fern::colors::{Color, ColoredLevelConfig};
 
-    #[cfg(debug_assertions)]
-    {
-        builder = builder
-            .level_for("hyper", log::LevelFilter::Info)
-            .level_for("wwm::app_bar", log::LevelFilter::Error);
-    }
+	let colors = ColoredLevelConfig::new()
+		.trace(Color::BrightWhite)
+		.debug(Color::Magenta)
+		.info(Color::Cyan)
+		.warn(Color::Yellow)
+		.error(Color::Red);
 
-    builder.apply().unwrap();
-
-    Ok(())
+	colors.color(level)
 }
