@@ -64,8 +64,11 @@ pub struct Config {
 	pub remove_title_bar: bool,
 	pub remove_task_bar: bool,
 	pub display_app_bar: bool,
+	#[serde(default = "Vec::new")]
 	pub workspace_settings: Vec<WorkspaceSetting>,
+	#[serde(default = "Vec::new")]
 	pub keybindings: Vec<Keybinding>,
+	#[serde(default = "Vec::new")]
 	pub rules: Vec<Rule>,
 }
 
