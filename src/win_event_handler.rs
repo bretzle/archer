@@ -1,6 +1,6 @@
 use crate::{app_bar, util, Event, CHANNEL};
 use lazy_static::lazy_static;
-use std::sync::Mutex;
+use std::sync::atomic::{AtomicBool, Ordering};
 use winapi::{
 	shared::{
 		minwindef::DWORD,
@@ -17,7 +17,7 @@ use winapi::{
 static mut HOOK: Option<HWINEVENTHOOK> = None;
 
 lazy_static! {
-	static ref UNREGISTER: Mutex<bool> = Mutex::new(false);
+	static ref UNREGISTER: AtomicBool = AtomicBool::new(false);
 }
 
 #[derive(Clone, Copy, Debug, PartialEq)]
@@ -110,9 +110,9 @@ pub fn register() -> Result<(), util::WinApiResultError> {
 				DispatchMessageW(&msg);
 			}
 
-			if *UNREGISTER.lock().unwrap() {
+			if UNREGISTER.load(Ordering::SeqCst) {
 				debug!("Win event hook unregistered");
-				*UNREGISTER.lock().unwrap() = false;
+				UNREGISTER.store(false, Ordering::SeqCst);
 				break;
 			}
 
@@ -126,7 +126,7 @@ pub fn register() -> Result<(), util::WinApiResultError> {
 pub fn unregister() -> Result<(), util::WinApiResultError> {
 	debug!("Unregistering win event hook");
 
-	*UNREGISTER.lock().unwrap() = true;
+	UNREGISTER.store(true, Ordering::SeqCst);
 
 	Ok(())
 }

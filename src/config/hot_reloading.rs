@@ -20,8 +20,8 @@ pub fn start() {
 
 		loop {
 			match rx.recv() {
-				Ok(ev) => match ev {
-					DebouncedEvent::Write(_) => {
+				Ok(ev) => {
+					if let DebouncedEvent::Write(_) = ev {
 						debug!("detected config change");
 						CHANNEL
 							.sender
@@ -29,8 +29,7 @@ pub fn start() {
 							.send(Event::ReloadConfig)
 							.expect("Failed to send ReloadConfig event");
 					}
-					_ => {}
-				},
+				}
 				Err(e) => error!("watch error: {:?}", e),
 			}
 		}

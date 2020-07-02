@@ -82,7 +82,7 @@ pub fn get_display_by_hmonitor(hmonitor: i32) -> Display {
 		.unwrap()
 		.iter()
 		.find(|d| d.hmonitor == hmonitor)
-		.expect(format!("Couldn't find display with hmonitor of {}", hmonitor).as_str())
+		.unwrap_or_else(|| panic!("Couldn't find display with hmonitor of {}", hmonitor))
 }
 
 pub fn get_display_by_idx(idx: i32) -> Display {
@@ -92,5 +92,5 @@ pub fn get_display_by_idx(idx: i32) -> Display {
 
 	*displays
 		.get(x)
-		.expect(format!("Couldn't get display at index {}", x).as_str())
+		.unwrap_or_else(|| panic!("Couldn't get display at index {}", x))
 }

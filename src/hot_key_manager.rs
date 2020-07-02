@@ -3,7 +3,7 @@ use key::Key;
 use lazy_static::lazy_static;
 use modifier::Modifier;
 use num_traits::FromPrimitive;
-use std::sync::Mutex;
+use std::sync::atomic::{AtomicBool, Ordering};
 use strum_macros::EnumString;
 use winapi::{
 	shared::windef::HWND,
@@ -54,7 +54,7 @@ pub struct Keybinding {
 }
 
 lazy_static! {
-	static ref UNREGISTER: Mutex<bool> = Mutex::new(false);
+	static ref UNREGISTER: AtomicBool = AtomicBool::new(false);
 }
 
 fn unregister_keybindings<'a>(keybindings: impl Iterator<Item = &'a mut Keybinding>) {
@@ -111,13 +111,13 @@ pub fn register() -> Result<(), Box<dyn std::error::Error>> {
 		let mut keybindings = CONFIG.lock().unwrap().keybindings.clone();
 		let mut msg: MSG = MSG::default();
 
-		while *UNREGISTER.lock().unwrap() {
+		while UNREGISTER.load(Ordering::SeqCst) {
 			debug!("Waiting for other thread get cleaned up");
 			// as long as another thread gets unregistered we cant start a new one
 			std::thread::sleep(std::time::Duration::from_millis(10))
 		}
 
-		if *WORK_MODE.lock().unwrap() {
+		if WORK_MODE.load(Ordering::SeqCst) {
 			register_keybindings(keybindings.iter_mut());
 		} else {
 			register_keybindings(
@@ -129,10 +129,10 @@ pub fn register() -> Result<(), Box<dyn std::error::Error>> {
 
 		unsafe {
 			loop {
-				if *UNREGISTER.lock().unwrap() {
+				if UNREGISTER.load(Ordering::SeqCst) {
 					debug!("Unregistering hot key manager");
 					unregister_keybindings(keybindings.iter_mut());
-					*UNREGISTER.lock().unwrap() = false;
+					UNREGISTER.store(false, Ordering::SeqCst);
 					break;
 				}
 
@@ -157,7 +157,7 @@ pub fn register() -> Result<(), Box<dyn std::error::Error>> {
 					}
 				}
 
-				let work_mode = *WORK_MODE.lock().unwrap();
+				let work_mode = WORK_MODE.load(Ordering::SeqCst);
 				if !work_mode {
 					unregister_keybindings(
 						keybindings
@@ -177,5 +177,5 @@ pub fn register() -> Result<(), Box<dyn std::error::Error>> {
 }
 
 pub fn unregister() {
-	*UNREGISTER.lock().unwrap() = true;
+	UNREGISTER.store(true, Ordering::SeqCst);
 }

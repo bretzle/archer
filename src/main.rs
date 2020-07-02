@@ -1,4 +1,5 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
+#![allow(clippy::tabs_in_doc_comments, clippy::trivial_regex)]
 
 #[macro_use]
 extern crate num_derive;
@@ -15,7 +16,14 @@ use crossbeam_channel::select;
 use display::Display;
 use event::{Event, EventChannel};
 use lazy_static::lazy_static;
-use std::{collections::HashMap, error::Error, sync::Mutex};
+use std::{
+	collections::HashMap,
+	error::Error,
+	sync::{
+		atomic::{AtomicBool, Ordering},
+		Mutex,
+	},
+};
 use tile_grid::TileGrid;
 use util::WinApiResult;
 use winapi::shared::windef::HWND;
@@ -40,7 +48,7 @@ mod window;
 mod workspace;
 
 lazy_static! {
-	pub static ref WORK_MODE: Mutex<bool> = Mutex::new(CONFIG.lock().unwrap().work_mode);
+	pub static ref WORK_MODE: AtomicBool = AtomicBool::new(CONFIG.lock().unwrap().work_mode);
 	pub static ref CONFIG: Mutex<Config> =
 		Mutex::new(Config::load().expect("Failed to loading config"));
 	pub static ref DISPLAYS: Mutex<Vec<Display>> = Mutex::new(Vec::new());
@@ -51,35 +59,6 @@ lazy_static! {
 		Mutex::new((1..11).map(Workspace::new).collect::<Vec<Workspace>>());
 	pub static ref VISIBLE_WORKSPACES: Mutex<HashMap<i32, i32>> = Mutex::new(HashMap::new());
 	pub static ref WORKSPACE_ID: Mutex<i32> = Mutex::new(1);
-}
-
-fn cleanup() -> WinApiResult<()> {
-	let mut grids = GRIDS.lock().unwrap();
-
-	for grid in grids.iter_mut() {
-		for tile in &mut grid.tiles.clone() {
-			grid.close_tile_by_window_id(tile.window.id);
-			tile.window.reset_style()?;
-			tile.window.update_style();
-			tile.window.reset_pos()?;
-		}
-	}
-
-	Ok(())
-}
-
-fn on_quit() -> WinApiResult<()> {
-	cleanup()?;
-
-	let config = CONFIG.lock().unwrap();
-
-	if config.remove_task_bar {
-		task_bar::show();
-	}
-
-	win_event_handler::unregister()?;
-
-	std::process::exit(0);
 }
 
 fn main() {
@@ -139,7 +118,7 @@ fn run() -> Result<(), Box<dyn Error>> {
 	info!("Initializing workspaces");
 	lazy_static::initialize(&WORKSPACES);
 
-	if *WORK_MODE.lock().unwrap() {
+	if WORK_MODE.load(Ordering::SeqCst) {
 		if CONFIG.lock().unwrap().remove_task_bar {
 			info!("Hiding taskbar");
 			task_bar::hide();
@@ -178,7 +157,7 @@ fn run() -> Result<(), Box<dyn Error>> {
 
 						let config = CONFIG.lock().unwrap().clone();
 						let new_config = Config::load().expect("Failed to load config");
-						let work_mode = *WORK_MODE.lock().unwrap();
+						let work_mode = WORK_MODE.load(Ordering::SeqCst);
 						let mut draw_app_bar = false;
 
 						if work_mode {
@@ -268,4 +247,33 @@ fn run() -> Result<(), Box<dyn Error>> {
 	}
 
 	Ok(())
+}
+
+fn cleanup() -> WinApiResult<()> {
+	let mut grids = GRIDS.lock().unwrap();
+
+	for grid in grids.iter_mut() {
+		for tile in &mut grid.tiles.clone() {
+			grid.close_tile_by_window_id(tile.window.id);
+			tile.window.reset_style()?;
+			tile.window.update_style();
+			tile.window.reset_pos()?;
+		}
+	}
+
+	Ok(())
+}
+
+fn on_quit() -> WinApiResult<()> {
+	cleanup()?;
+
+	let config = CONFIG.lock().unwrap();
+
+	if config.remove_task_bar {
+		task_bar::show();
+	}
+
+	win_event_handler::unregister()?;
+
+	std::process::exit(0);
 }

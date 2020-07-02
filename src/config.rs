@@ -124,7 +124,7 @@ impl Config {
 
 		if !path.exists() {
 			debug!("Config file doesn't exist. Creating file.");
-			if let Ok(mut file) = File::create(path.clone()) {
+			if let Ok(mut file) = File::create(path) {
 				debug!("Initializeing config with default values");
 				file.write_all(include_bytes!("../DEFAULT_CONFIG.toml"))?;
 			}
