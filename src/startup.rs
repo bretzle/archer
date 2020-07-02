@@ -1,11 +1,10 @@
-use winapi::shared::minwindef::HKEY;
-use winapi::um::winnt::KEY_SET_VALUE;
-use winapi::um::winnt::REG_OPTION_NON_VOLATILE;
-use winapi::um::winnt::REG_SZ;
-use winapi::um::winreg::RegCreateKeyExW;
-use winapi::um::winreg::RegDeleteKeyValueW;
-use winapi::um::winreg::RegSetValueExW;
-use winapi::um::winreg::HKEY_CURRENT_USER;
+use winapi::{
+	shared::minwindef::HKEY,
+	um::{
+		winnt::{KEY_SET_VALUE, REG_OPTION_NON_VOLATILE, REG_SZ},
+		winreg::{RegCreateKeyExW, RegDeleteKeyValueW, RegSetValueExW, HKEY_CURRENT_USER},
+	},
+};
 
 pub fn set_launch_on_startup(enabled: bool) -> Result<(), Box<dyn std::error::Error>> {
 	if let Some(mut target_path) = dirs::config_dir() {

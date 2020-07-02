@@ -7,17 +7,14 @@ extern crate strum_macros;
 #[macro_use]
 extern crate log;
 
-use crate::display::get_display_by_hmonitor;
-use crate::display::get_display_by_idx;
+use crate::display::{get_display_by_hmonitor, get_display_by_idx};
 use app_bar::RedrawAppBarReason;
 use config::Config;
 use crossbeam_channel::select;
 use display::Display;
-use event::Event;
-use event::EventChannel;
+use event::{Event, EventChannel};
 use lazy_static::lazy_static;
-use std::collections::HashMap;
-use std::sync::Mutex;
+use std::{collections::HashMap, sync::Mutex};
 use tile_grid::TileGrid;
 use winapi::shared::windef::HWND;
 use workspace::Workspace;

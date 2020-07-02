@@ -1,35 +1,15 @@
-use crate::config::Rule;
-use crate::util;
-use crate::util::rect_to_string;
-use crate::CONFIG;
+use crate::{config::Rule, util, util::rect_to_string, CONFIG};
 use gwl_ex_style::GwlExStyle;
 use gwl_style::GwlStyle;
-use winapi::shared::windef::HWND;
-use winapi::shared::windef::RECT;
-use winapi::um::winuser::AdjustWindowRectEx;
-use winapi::um::winuser::GetForegroundWindow;
-use winapi::um::winuser::GetParent;
-use winapi::um::winuser::GetSystemMetrics;
-use winapi::um::winuser::GetWindowLongA;
-use winapi::um::winuser::GetWindowRect;
-use winapi::um::winuser::SendMessageA;
-use winapi::um::winuser::SetForegroundWindow;
-use winapi::um::winuser::SetWindowLongA;
-use winapi::um::winuser::SetWindowPos;
-use winapi::um::winuser::ShowWindow;
-use winapi::um::winuser::GWL_EXSTYLE;
-use winapi::um::winuser::GWL_STYLE;
-use winapi::um::winuser::HWND_NOTOPMOST;
-use winapi::um::winuser::HWND_TOP;
-use winapi::um::winuser::HWND_TOPMOST;
-use winapi::um::winuser::SM_CXFRAME;
-use winapi::um::winuser::SM_CYCAPTION;
-use winapi::um::winuser::SM_CYFRAME;
-use winapi::um::winuser::SWP_NOMOVE;
-use winapi::um::winuser::SWP_NOSIZE;
-use winapi::um::winuser::SW_HIDE;
-use winapi::um::winuser::SW_SHOW;
-use winapi::um::winuser::WM_CLOSE;
+use winapi::{
+	shared::windef::{HWND, RECT},
+	um::winuser::{
+		AdjustWindowRectEx, GetForegroundWindow, GetParent, GetSystemMetrics, GetWindowLongA,
+		GetWindowRect, SendMessageA, SetForegroundWindow, SetWindowLongA, SetWindowPos, ShowWindow,
+		GWL_EXSTYLE, GWL_STYLE, HWND_NOTOPMOST, HWND_TOP, HWND_TOPMOST, SM_CXFRAME, SM_CYCAPTION,
+		SM_CYFRAME, SWP_NOMOVE, SWP_NOSIZE, SW_HIDE, SW_SHOW, WM_CLOSE,
+	},
+};
 
 pub mod gwl_ex_style;
 pub mod gwl_style;

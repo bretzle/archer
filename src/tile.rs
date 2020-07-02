@@ -1,5 +1,4 @@
-use crate::tile_grid::SplitDirection;
-use crate::window::Window;
+use crate::{tile_grid::SplitDirection, window::Window};
 
 #[derive(Clone)]
 pub struct Tile {

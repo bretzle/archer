@@ -1,15 +1,10 @@
 use crate::DISPLAYS;
 use lazy_static::lazy_static;
-use std::collections::HashMap;
-use std::ffi::CString;
-use std::sync::Mutex;
-use winapi::shared::windef::HWND;
-use winapi::shared::windef::RECT;
-use winapi::um::winuser::FindWindowA;
-use winapi::um::winuser::GetWindowRect;
-use winapi::um::winuser::ShowWindow;
-use winapi::um::winuser::SW_HIDE;
-use winapi::um::winuser::SW_SHOW;
+use std::{collections::HashMap, ffi::CString, sync::Mutex};
+use winapi::{
+	shared::windef::{HWND, RECT},
+	um::winuser::{FindWindowA, GetWindowRect, ShowWindow, SW_HIDE, SW_SHOW},
+};
 
 lazy_static! {
 	pub static ref WINDOWS: Mutex<HashMap<i32, i32>> = Mutex::new(HashMap::new());

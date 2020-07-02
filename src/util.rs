@@ -1,12 +1,12 @@
 use core::fmt::Debug;
 use thiserror::Error;
-use winapi::shared::windef::HWND;
-use winapi::shared::windef::RECT;
-use winapi::um::wingdi::GetBValue;
-use winapi::um::wingdi::GetGValue;
-use winapi::um::wingdi::GetRValue;
-use winapi::um::wingdi::RGB;
-use winapi::um::winuser::GetWindowTextA;
+use winapi::{
+	shared::windef::{HWND, RECT},
+	um::{
+		wingdi::{GetBValue, GetGValue, GetRValue, RGB},
+		winuser::GetWindowTextA,
+	},
+};
 
 pub fn get_title_of_window(window_handle: HWND) -> Result<String, WinApiResultError> {
 	let mut buffer = [0; 0x200];

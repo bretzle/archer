@@ -1,26 +1,18 @@
-use crate::app_bar;
-use crate::util;
-use crate::Event;
-use crate::CHANNEL;
+use crate::{app_bar, util, Event, CHANNEL};
 use lazy_static::lazy_static;
 use std::sync::Mutex;
-use winapi::shared::minwindef::DWORD;
-use winapi::shared::ntdef::LONG;
-use winapi::shared::windef::HWINEVENTHOOK;
-use winapi::shared::windef::HWND;
-use winapi::um::winuser::DispatchMessageW;
-use winapi::um::winuser::PeekMessageW;
-use winapi::um::winuser::SetWinEventHook;
-use winapi::um::winuser::TranslateMessage;
-use winapi::um::winuser::EVENT_MAX;
-use winapi::um::winuser::EVENT_MIN;
-use winapi::um::winuser::EVENT_OBJECT_DESTROY;
-use winapi::um::winuser::EVENT_OBJECT_HIDE;
-use winapi::um::winuser::EVENT_OBJECT_SHOW;
-use winapi::um::winuser::EVENT_SYSTEM_FOREGROUND;
-use winapi::um::winuser::MSG;
-use winapi::um::winuser::OBJID_WINDOW;
-use winapi::um::winuser::PM_REMOVE;
+use winapi::{
+	shared::{
+		minwindef::DWORD,
+		ntdef::LONG,
+		windef::{HWINEVENTHOOK, HWND},
+	},
+	um::winuser::{
+		DispatchMessageW, PeekMessageW, SetWinEventHook, TranslateMessage, EVENT_MAX, EVENT_MIN,
+		EVENT_OBJECT_DESTROY, EVENT_OBJECT_HIDE, EVENT_OBJECT_SHOW, EVENT_SYSTEM_FOREGROUND, MSG,
+		OBJID_WINDOW, PM_REMOVE,
+	},
+};
 
 static mut HOOK: Option<HWINEVENTHOOK> = None;
 

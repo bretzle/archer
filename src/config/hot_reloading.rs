@@ -1,9 +1,5 @@
-use crate::event::Event;
-use crate::CHANNEL;
-use notify::watcher;
-use notify::DebouncedEvent;
-use notify::RecursiveMode;
-use notify::Watcher;
+use crate::{event::Event, CHANNEL};
+use notify::{watcher, DebouncedEvent, RecursiveMode, Watcher};
 use std::sync::mpsc::channel;
 
 pub fn start() {

@@ -1,12 +1,13 @@
-use crate::hot_key_manager::{key::Key, modifier::Modifier, Direction, Keybinding, KeybindingType};
-use crate::tile_grid::SplitDirection;
+use crate::{
+	hot_key_manager::{key::Key, modifier::Modifier, Direction, Keybinding, KeybindingType},
+	tile_grid::SplitDirection,
+};
 use regex::Regex;
-use std::io::{Error, ErrorKind, Write};
-use std::str::FromStr;
-use winapi::um::wingdi::GetBValue;
-use winapi::um::wingdi::GetGValue;
-use winapi::um::wingdi::GetRValue;
-use winapi::um::wingdi::RGB;
+use std::{
+	io::{Error, ErrorKind, Write},
+	str::FromStr,
+};
+use winapi::um::wingdi::{GetBValue, GetGValue, GetRValue, RGB};
 
 #[macro_use]
 mod macros;

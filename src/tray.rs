@@ -1,57 +1,27 @@
-use crate::event::Event;
-use crate::util;
-use crate::CHANNEL;
-use crate::CONFIG;
+use crate::{event::Event, util, CHANNEL, CONFIG};
 use lazy_static::lazy_static;
 use num_traits::FromPrimitive;
 use std::sync::Mutex;
-use winapi::shared::minwindef::HINSTANCE;
-use winapi::shared::minwindef::LOWORD;
-use winapi::shared::minwindef::LPARAM;
-use winapi::shared::minwindef::LRESULT;
-use winapi::shared::minwindef::UINT;
-use winapi::shared::minwindef::WPARAM;
-use winapi::shared::windef::HWND;
-use winapi::shared::windef::POINT;
-use winapi::um::shellapi::Shell_NotifyIconW;
-use winapi::um::shellapi::NIF_ICON;
-use winapi::um::shellapi::NIF_MESSAGE;
-use winapi::um::shellapi::NIF_TIP;
-use winapi::um::shellapi::NIM_ADD;
-use winapi::um::shellapi::NIM_DELETE;
-use winapi::um::shellapi::NOTIFYICONDATAW;
-use winapi::um::wingdi::CreateSolidBrush;
-use winapi::um::winuser::CreateIconFromResourceEx;
-use winapi::um::winuser::CreatePopupMenu;
-use winapi::um::winuser::DefWindowProcW;
-use winapi::um::winuser::DestroyMenu;
-use winapi::um::winuser::DispatchMessageW;
-use winapi::um::winuser::GetCursorPos;
-use winapi::um::winuser::GetMessageW;
-use winapi::um::winuser::InsertMenuW;
-use winapi::um::winuser::PostMessageW;
-use winapi::um::winuser::RegisterClassA;
-use winapi::um::winuser::SendMessageW;
-use winapi::um::winuser::SetFocus;
-use winapi::um::winuser::SetForegroundWindow;
-use winapi::um::winuser::SetMenuItemBitmaps;
-use winapi::um::winuser::TrackPopupMenu;
-use winapi::um::winuser::TranslateMessage;
-use winapi::um::winuser::LR_DEFAULTCOLOR;
-use winapi::um::winuser::MF_BYPOSITION;
-use winapi::um::winuser::MF_STRING;
-use winapi::um::winuser::MSG;
-use winapi::um::winuser::TPM_LEFTALIGN;
-use winapi::um::winuser::TPM_NONOTIFY;
-use winapi::um::winuser::TPM_RETURNCMD;
-use winapi::um::winuser::TPM_RIGHTBUTTON;
-use winapi::um::winuser::WM_APP;
-use winapi::um::winuser::WM_CLOSE;
-use winapi::um::winuser::WM_COMMAND;
-use winapi::um::winuser::WM_CREATE;
-use winapi::um::winuser::WM_INITMENUPOPUP;
-use winapi::um::winuser::WM_RBUTTONUP;
-use winapi::um::winuser::WNDCLASSA;
+use winapi::{
+	shared::{
+		minwindef::{HINSTANCE, LOWORD, LPARAM, LRESULT, UINT, WPARAM},
+		windef::{HWND, POINT},
+	},
+	um::{
+		shellapi::{
+			Shell_NotifyIconW, NIF_ICON, NIF_MESSAGE, NIF_TIP, NIM_ADD, NIM_DELETE, NOTIFYICONDATAW,
+		},
+		wingdi::CreateSolidBrush,
+		winuser::{
+			CreateIconFromResourceEx, CreatePopupMenu, DefWindowProcW, DestroyMenu,
+			DispatchMessageW, GetCursorPos, GetMessageW, InsertMenuW, PostMessageW, RegisterClassA,
+			SendMessageW, SetFocus, SetForegroundWindow, SetMenuItemBitmaps, TrackPopupMenu,
+			TranslateMessage, LR_DEFAULTCOLOR, MF_BYPOSITION, MF_STRING, MSG, TPM_LEFTALIGN,
+			TPM_NONOTIFY, TPM_RETURNCMD, TPM_RIGHTBUTTON, WM_APP, WM_CLOSE, WM_COMMAND, WM_CREATE,
+			WM_INITMENUPOPUP, WM_RBUTTONUP, WNDCLASSA,
+		},
+	},
+};
 
 lazy_static! {
 	pub static ref WINDOW: Mutex<i32> = Mutex::new(0);

@@ -1,6 +1,4 @@
-use crate::tile_grid::SplitDirection;
-use crate::GRIDS;
-use crate::WORKSPACE_ID;
+use crate::{tile_grid::SplitDirection, GRIDS, WORKSPACE_ID};
 
 pub fn handle(direction: SplitDirection) -> Result<(), Box<dyn std::error::Error>> {
 	let mut grids = GRIDS.lock().unwrap();

@@ -1,11 +1,8 @@
-use crate::change_workspace;
-use crate::util;
-use crate::window::gwl_ex_style::GwlExStyle;
-use crate::window::gwl_style::GwlStyle;
-use crate::window::Window;
-use crate::CONFIG;
-use crate::GRIDS;
-use crate::WORKSPACE_ID;
+use crate::{
+	change_workspace, util,
+	window::{gwl_ex_style::GwlExStyle, gwl_style::GwlStyle, Window},
+	CONFIG, GRIDS, WORKSPACE_ID,
+};
 use winapi::shared::windef::HWND;
 
 pub fn handle(hwnd: HWND, ignore_window_style: bool) -> Result<(), Box<dyn std::error::Error>> {

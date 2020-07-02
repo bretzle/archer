@@ -1,67 +1,29 @@
-use crate::change_workspace;
-use crate::display::get_primary_display;
-use crate::event::Event;
-use crate::is_visible_workspace;
-use crate::tile_grid::TileGrid;
-use crate::util;
-use crate::CHANNEL;
-use crate::CONFIG;
-use crate::DISPLAYS;
-use crate::GRIDS;
-use crate::WORKSPACE_ID;
+use crate::{
+	change_workspace, display::get_primary_display, event::Event, is_visible_workspace,
+	tile_grid::TileGrid, util, CHANNEL, CONFIG, DISPLAYS, GRIDS, WORKSPACE_ID,
+};
 use lazy_static::lazy_static;
-use std::collections::HashMap;
-use std::ffi::CString;
-use std::sync::Mutex;
-use winapi::shared::minwindef::HINSTANCE;
-use winapi::shared::minwindef::LPARAM;
-use winapi::shared::minwindef::LRESULT;
-use winapi::shared::minwindef::UINT;
-use winapi::shared::minwindef::WPARAM;
-use winapi::shared::windef::HBRUSH;
-use winapi::shared::windef::HDC;
-use winapi::shared::windef::HWND;
-use winapi::shared::windef::RECT;
-use winapi::shared::windef::SIZE;
-use winapi::shared::windowsx::GET_X_LPARAM;
-use winapi::um::wingdi::CreateFontIndirectA;
-use winapi::um::wingdi::CreateSolidBrush;
-use winapi::um::wingdi::GetTextExtentPoint32A;
-use winapi::um::wingdi::SelectObject;
-use winapi::um::wingdi::SetBkColor;
-use winapi::um::wingdi::SetBkMode;
-use winapi::um::wingdi::SetTextColor;
-use winapi::um::wingdi::LOGFONTA;
-use winapi::um::wingdi::TRANSPARENT;
-use winapi::um::winuser::BeginPaint;
-use winapi::um::winuser::DefWindowProcA;
-use winapi::um::winuser::DispatchMessageW;
-use winapi::um::winuser::DrawTextA;
-use winapi::um::winuser::EndPaint;
-use winapi::um::winuser::FillRect;
-use winapi::um::winuser::GetClientRect;
-use winapi::um::winuser::GetDC;
-use winapi::um::winuser::GetMessageW;
-use winapi::um::winuser::LoadCursorA;
-use winapi::um::winuser::RegisterClassA;
-use winapi::um::winuser::SendMessageA;
-use winapi::um::winuser::SetCursor;
-use winapi::um::winuser::ShowWindow;
-use winapi::um::winuser::TranslateMessage;
-use winapi::um::winuser::DT_CENTER;
-use winapi::um::winuser::DT_SINGLELINE;
-use winapi::um::winuser::DT_VCENTER;
-use winapi::um::winuser::IDC_ARROW;
-use winapi::um::winuser::MSG;
-use winapi::um::winuser::PAINTSTRUCT;
-use winapi::um::winuser::SW_HIDE;
-use winapi::um::winuser::SW_SHOW;
-use winapi::um::winuser::WM_CLOSE;
-use winapi::um::winuser::WM_CREATE;
-use winapi::um::winuser::WM_LBUTTONDOWN;
-use winapi::um::winuser::WM_PAINT;
-use winapi::um::winuser::WM_SETCURSOR;
-use winapi::um::winuser::{UnregisterClassA, WNDCLASSA};
+use std::{collections::HashMap, ffi::CString, sync::Mutex};
+use winapi::{
+	shared::{
+		minwindef::{HINSTANCE, LPARAM, LRESULT, UINT, WPARAM},
+		windef::{HBRUSH, HDC, HWND, RECT, SIZE},
+		windowsx::GET_X_LPARAM,
+	},
+	um::{
+		wingdi::{
+			CreateFontIndirectA, CreateSolidBrush, GetTextExtentPoint32A, SelectObject, SetBkColor,
+			SetBkMode, SetTextColor, LOGFONTA, TRANSPARENT,
+		},
+		winuser::{
+			BeginPaint, DefWindowProcA, DispatchMessageW, DrawTextA, EndPaint, FillRect,
+			GetClientRect, GetDC, GetMessageW, LoadCursorA, RegisterClassA, SendMessageA,
+			SetCursor, ShowWindow, TranslateMessage, UnregisterClassA, DT_CENTER, DT_SINGLELINE,
+			DT_VCENTER, IDC_ARROW, MSG, PAINTSTRUCT, SW_HIDE, SW_SHOW, WM_CLOSE, WM_CREATE,
+			WM_LBUTTONDOWN, WM_PAINT, WM_SETCURSOR, WNDCLASSA,
+		},
+	},
+};
 
 lazy_static! {
 	pub static ref HEIGHT: Mutex<i32> = Mutex::new(0);

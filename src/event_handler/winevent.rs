@@ -1,7 +1,8 @@
-use crate::util;
-use crate::win_event_handler::WinEvent;
-use crate::win_event_handler::WinEventType;
-use crate::GRIDS;
+use crate::{
+	util,
+	win_event_handler::{WinEvent, WinEventType},
+	GRIDS,
+};
 use winapi::shared::windef::HWND;
 
 mod destroy;

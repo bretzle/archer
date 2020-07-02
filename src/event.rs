@@ -1,9 +1,7 @@
-use crate::app_bar::RedrawAppBarReason;
-use crate::hot_key_manager::Keybinding;
-use crate::win_event_handler::WinEvent;
-use crossbeam_channel::unbounded;
-use crossbeam_channel::Receiver;
-use crossbeam_channel::Sender;
+use crate::{
+	app_bar::RedrawAppBarReason, hot_key_manager::Keybinding, win_event_handler::WinEvent,
+};
+use crossbeam_channel::{unbounded, Receiver, Sender};
 
 #[derive(Debug)]
 pub enum Event {

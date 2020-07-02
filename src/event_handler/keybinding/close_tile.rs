@@ -1,5 +1,4 @@
-use crate::GRIDS;
-use crate::WORKSPACE_ID;
+use crate::{GRIDS, WORKSPACE_ID};
 
 pub fn handle() -> Result<(), Box<dyn std::error::Error>> {
 	let mut grids = GRIDS.lock().unwrap();

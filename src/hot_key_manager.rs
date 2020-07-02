@@ -1,24 +1,17 @@
-use crate::event::Event;
-use crate::tile_grid::SplitDirection;
-use crate::util;
-use crate::CHANNEL;
-use crate::CONFIG;
-use crate::WORK_MODE;
+use crate::{event::Event, tile_grid::SplitDirection, util, CHANNEL, CONFIG, WORK_MODE};
 use key::Key;
 use lazy_static::lazy_static;
 use modifier::Modifier;
 use num_traits::FromPrimitive;
 use std::sync::Mutex;
 use strum_macros::EnumString;
-use winapi::shared::windef::HWND;
-use winapi::um::winuser::DispatchMessageW;
-use winapi::um::winuser::PeekMessageW;
-use winapi::um::winuser::RegisterHotKey;
-use winapi::um::winuser::TranslateMessage;
-use winapi::um::winuser::UnregisterHotKey;
-use winapi::um::winuser::MSG;
-use winapi::um::winuser::PM_REMOVE;
-use winapi::um::winuser::WM_HOTKEY;
+use winapi::{
+	shared::windef::HWND,
+	um::winuser::{
+		DispatchMessageW, PeekMessageW, RegisterHotKey, TranslateMessage, UnregisterHotKey, MSG,
+		PM_REMOVE, WM_HOTKEY,
+	},
+};
 
 pub mod key;
 pub mod modifier;

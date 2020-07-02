@@ -1,15 +1,11 @@
-use crate::change_workspace;
-use crate::display::get_display_by_idx;
-use crate::event::Event;
-use crate::hot_key_manager::Keybinding;
-use crate::hot_key_manager::KeybindingType;
-use crate::CHANNEL;
-use crate::GRIDS;
-use crate::VISIBLE_WORKSPACES;
-use crate::WORKSPACE_ID;
-use winapi::um::processthreadsapi::CreateProcessA;
-use winapi::um::processthreadsapi::PROCESS_INFORMATION;
-use winapi::um::processthreadsapi::STARTUPINFOA;
+use crate::{
+	change_workspace,
+	display::get_display_by_idx,
+	event::Event,
+	hot_key_manager::{Keybinding, KeybindingType},
+	CHANNEL, GRIDS, VISIBLE_WORKSPACES, WORKSPACE_ID,
+};
+use winapi::um::processthreadsapi::{CreateProcessA, PROCESS_INFORMATION, STARTUPINFOA};
 
 mod close_tile;
 mod focus;

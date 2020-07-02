@@ -1,10 +1,9 @@
-use crate::event::Event;
-use crate::win_event_handler::WinEvent;
-use crate::win_event_handler::WinEventType;
-use crate::window::Window;
-use crate::CHANNEL;
-use crate::GRIDS;
-use crate::WORKSPACE_ID;
+use crate::{
+	event::Event,
+	win_event_handler::{WinEvent, WinEventType},
+	window::Window,
+	CHANNEL, GRIDS, WORKSPACE_ID,
+};
 
 pub fn handle() -> Result<(), Box<dyn std::error::Error>> {
 	let window_handle = Window::get_foreground_window()?;

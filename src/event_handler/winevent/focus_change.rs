@@ -1,5 +1,4 @@
-use crate::GRIDS;
-use crate::WORKSPACE_ID;
+use crate::{GRIDS, WORKSPACE_ID};
 use winapi::shared::windef::HWND;
 
 pub fn handle(hwnd: HWND) -> Result<(), Box<dyn std::error::Error>> {

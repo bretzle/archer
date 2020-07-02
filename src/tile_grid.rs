@@ -1,15 +1,16 @@
-use crate::display::get_primary_display;
-use crate::display::Display;
-use crate::hot_key_manager::Direction;
-use crate::task_bar;
-use crate::tile::Tile;
-use crate::util;
-use crate::window::Window;
-use crate::CONFIG;
-use winapi::shared::windef::HWND;
-use winapi::shared::windef::RECT;
-use winapi::um::winuser::SetWindowPos;
-use winapi::um::winuser::SWP_NOSENDCHANGING;
+use crate::{
+	display::{get_primary_display, Display},
+	hot_key_manager::Direction,
+	task_bar,
+	tile::Tile,
+	util,
+	window::Window,
+	CONFIG,
+};
+use winapi::{
+	shared::windef::{HWND, RECT},
+	um::winuser::{SetWindowPos, SWP_NOSENDCHANGING},
+};
 
 #[derive(Clone, EnumString, Copy, Debug, PartialEq)]
 pub enum SplitDirection {
