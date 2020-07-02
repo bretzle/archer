@@ -10,8 +10,8 @@ use winapi::um::winreg::HKEY_CURRENT_USER;
 
 pub fn set_launch_on_startup(enabled: bool) -> Result<(), Box<dyn std::error::Error>> {
 	if let Some(mut target_path) = dirs::config_dir() {
-		target_path.push("wwm");
-		target_path.push("wwm.exe");
+		target_path.push("wtm");
+		target_path.push("wtm.exe");
 
 		if let Ok(source_path) = std::env::current_exe() {
 			if source_path != target_path && enabled {
@@ -31,7 +31,7 @@ pub fn set_launch_on_startup(enabled: bool) -> Result<(), Box<dyn std::error::Er
 				.chain(std::iter::once(0))
 				.collect();
 
-			let mut value_name: Vec<u16> = "wwm".encode_utf16().chain(std::iter::once(0)).collect();
+			let mut value_name: Vec<u16> = "wtm".encode_utf16().chain(std::iter::once(0)).collect();
 
 			unsafe {
 				let mut key: HKEY = std::mem::zeroed();

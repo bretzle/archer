@@ -1,20 +1,34 @@
+app_bar_font: Cascadia Mono
+app_bar_font_size: 17
+
+work_mode: true
+multi_monitor: false
+launch_on_startup: false
 display_app_bar: true
 remove_title_bar: true
 remove_task_bar: true
 
 rules:
-  - pattern: ^File Explorer$
+  - pattern: ^(File Explorer|Task Manager)$
     manage: false
   - pattern: ^.*- Mozilla Firefox|Mozilla Firefox$
     has_custom_titlebar: true
     firefox: true
+  - pattern: ^.*- Discord|Discord$
+    has_custom_titlebar: true
+  - pattern: ^Spotify Premium$
+    has_custom_titlebar: true
   - pattern: ^.*- Google Chrome$
     has_custom_titlebar: true
     chromium: true
-  - pattern: ^(.*- (Visual Studio Code|Discord)|Spotify Premium|Discord)$
+  - pattern: ^.*- Visual Studio Code$
     has_custom_titlebar: true
 
 keybindings:
+  - type: Launch
+    key: Alt+B
+    cmd: C:\Program Files\Mozilla Firefox\firefox.exe
+
   - type: CloseTile
     key: Alt+Q
 
@@ -55,21 +69,23 @@ keybindings:
     direction: Horizontal
 
   - type: ToggleFloatingMode
+    key: Alt+Control+F
+  - type: ToggleFullscreen
     key: Alt+F
   - type: ToggleWorkMode
     key: Alt+Control+W
 
   - type: MoveToWorkspace
-    key: Alt+Control+1
+    key: Alt+Shift+1
     id: 1
   - type: MoveToWorkspace
-    key: Alt+Control+2
+    key: Alt+Shift+2
     id: 2
   - type: MoveToWorkspace
-    key: Alt+Control+3
+    key: Alt+Shift+3
     id: 3
   - type: MoveToWorkspace
-    key: Alt+Control+4
+    key: Alt+Shift+4
     id: 4
 
   - type: ChangeWorkspace
@@ -84,3 +100,6 @@ keybindings:
   - type: ChangeWorkspace
     key: Alt+4
     id: 4
+  - type: ChangeWorkspace
+    key: Alt+5
+    id: 5

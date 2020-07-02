@@ -1,6 +1,6 @@
 use crate::event::Event;
 use crate::CHANNEL;
-use log::debug;
+use log::{debug, error};
 use notify::watcher;
 use notify::DebouncedEvent;
 use notify::RecursiveMode;
@@ -16,7 +16,7 @@ pub fn start() {
 
 		let mut path = dirs::config_dir().expect("Failed to get config dir");
 
-		path.push("wwm");
+		path.push("wtm");
 		path.push("config.yaml");
 
 		watcher
@@ -36,7 +36,7 @@ pub fn start() {
 					}
 					_ => {}
 				},
-				Err(e) => println!("watch error: {:?}", e),
+				Err(e) => error!("watch error: {:?}", e),
 			}
 		}
 	});
