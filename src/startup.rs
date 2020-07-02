@@ -1,4 +1,3 @@
-use log::{debug, info};
 use winapi::shared::minwindef::HKEY;
 use winapi::um::winnt::KEY_SET_VALUE;
 use winapi::um::winnt::REG_OPTION_NON_VOLATILE;

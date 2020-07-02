@@ -7,7 +7,6 @@ use crate::CHANNEL;
 use crate::GRIDS;
 use crate::VISIBLE_WORKSPACES;
 use crate::WORKSPACE_ID;
-use log::{error, info};
 use winapi::um::processthreadsapi::CreateProcessA;
 use winapi::um::processthreadsapi::PROCESS_INFORMATION;
 use winapi::um::processthreadsapi::STARTUPINFOA;

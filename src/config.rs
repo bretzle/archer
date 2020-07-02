@@ -1,6 +1,5 @@
 use crate::hot_key_manager::{key::Key, modifier::Modifier, Direction, Keybinding, KeybindingType};
 use crate::tile_grid::SplitDirection;
-use log::debug;
 use regex::Regex;
 use std::io::{Error, ErrorKind, Write};
 use std::str::FromStr;

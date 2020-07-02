@@ -1,6 +1,5 @@
 use crate::DISPLAYS;
 use lazy_static::lazy_static;
-use log::debug;
 use std::collections::HashMap;
 use std::ffi::CString;
 use std::sync::Mutex;

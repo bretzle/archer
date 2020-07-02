@@ -3,7 +3,6 @@ use crate::util;
 use crate::Event;
 use crate::CHANNEL;
 use lazy_static::lazy_static;
-use log::debug;
 use std::sync::Mutex;
 use winapi::shared::minwindef::DWORD;
 use winapi::shared::ntdef::LONG;

@@ -6,7 +6,6 @@ use crate::CONFIG;
 use crate::WORK_MODE;
 use key::Key;
 use lazy_static::lazy_static;
-use log::{debug, info};
 use modifier::Modifier;
 use num_traits::FromPrimitive;
 use std::sync::Mutex;

@@ -1,6 +1,5 @@
 use crate::event::Event;
 use crate::CHANNEL;
-use log::{debug, error};
 use notify::watcher;
 use notify::DebouncedEvent;
 use notify::RecursiveMode;
