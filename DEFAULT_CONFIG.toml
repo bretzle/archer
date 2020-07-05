@@ -137,6 +137,11 @@ key      = "5"
 modifier = "Alt"
 type     = { ChangeWorkspace = 5 }
 
+[[keybindings]]
+key      = "Enter"
+modifier = "AltControl"
+type     = "Absorb"
+
 [[rules]]
 manage  = false
 pattern = "^(File Explorer|Task Manager)$"
@@ -160,5 +165,6 @@ has_custom_titlebar = true
 pattern             = "^.*- Google Chrome$"
 
 [[rules]]
+chromium            = true
 has_custom_titlebar = true
 pattern             = "^.*- Visual Studio Code$"

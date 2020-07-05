@@ -40,6 +40,7 @@ pub enum KeybindingType {
 	Swap(Direction),
 	MoveToWorkspace(i32),
 	Split(SplitDirection),
+	Absorb,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]

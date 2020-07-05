@@ -14,8 +14,12 @@ pub fn start() {
 		path.push("wtm");
 		path.push("config.yaml");
 
+		// watcher
+		// 	.watch(path, RecursiveMode::NonRecursive)
+		// 	.expect("Failed to watch config directory");
+
 		watcher
-			.watch(path, RecursiveMode::NonRecursive)
+			.watch("../DEFAULT_CONFIG.toml", RecursiveMode::NonRecursive)
 			.expect("Failed to watch config directory");
 
 		loop {

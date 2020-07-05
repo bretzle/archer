@@ -2,9 +2,13 @@ use crate::{
 	display::get_display_by_idx,
 	event::Event,
 	hot_key_manager::{Keybinding, KeybindingType},
+	win_event_handler::{WinEvent, WinEventType},
 	workspace, CHANNEL, GRIDS, VISIBLE_WORKSPACES, WORKSPACE_ID,
 };
-use winapi::um::processthreadsapi::{CreateProcessA, PROCESS_INFORMATION, STARTUPINFOA};
+use winapi::um::{
+	processthreadsapi::{CreateProcessA, PROCESS_INFORMATION, STARTUPINFOA},
+	winuser::{GetFocus, GetForegroundWindow, SendMessageA, WM_CLOSE},
+};
 
 mod close_tile;
 mod focus;
@@ -100,6 +104,17 @@ pub fn handle(kb: Keybinding) -> Result<(), Box<dyn std::error::Error>> {
 		KeybindingType::Swap(direction) => swap::handle(direction)?,
 		KeybindingType::Quit => sender.send(Event::Exit)?,
 		KeybindingType::Split(direction) => split::handle(direction)?,
+		KeybindingType::Absorb => unsafe {
+			let handle = GetForegroundWindow();
+			println!("{:?}", handle as i32);
+
+			let event = Event::WinEvent(WinEvent {
+				typ: WinEventType::Show(false),
+				hwnd: handle as i32,
+			});
+
+			CHANNEL.sender.send(event).unwrap()
+		},
 	};
 
 	Ok(())
