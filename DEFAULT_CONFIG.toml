@@ -1,0 +1,6 @@
+auto_start             = false
+hotkey                 = "CTRL+ALT+S"
+hotkey_maximize_toggle = "CTRL+ALT+X"
+hotkey_quick_resize    = "CTRL+ALT+Q"
+margin                 = 10
+padding                = 10
