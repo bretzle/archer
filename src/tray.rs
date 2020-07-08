@@ -247,7 +247,7 @@ unsafe extern "system" fn callback(
 				ID_CONFIG => {
 					if let Some(mut config_path) = dirs::config_dir() {
 						config_path.push("wtm");
-						config_path.push("config.yml");
+						config_path.push("config.toml");
 
 						if config_path.exists() {
 							let mut operation = str_to_wide!("open");
