@@ -75,7 +75,7 @@ pub unsafe fn spawn_sys_tray() {
 }
 
 unsafe fn add_icon(hwnd: HWND) {
-	let icon_bytes = include_bytes!("../assets/icon_32.png");
+	let icon_bytes = include_bytes!("../logo.png");
 
 	let icon_handle = CreateIconFromResourceEx(
 		icon_bytes.as_ptr() as *mut _,
