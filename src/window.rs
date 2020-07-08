@@ -1,250 +1,112 @@
-use crate::{config::Rule, util, CONFIG};
-use gwl_ex_style::GwlExStyle;
-use gwl_style::GwlStyle;
-use winapi::{
-	shared::windef::{HWND, RECT},
-	um::winuser::{
-		AdjustWindowRectEx, GetForegroundWindow, GetParent, GetSystemMetrics, GetWindowLongA,
-		GetWindowRect, SendMessageA, SetForegroundWindow, SetWindowLongA, SetWindowPos, ShowWindow,
-		GWL_EXSTYLE, GWL_STYLE, HWND_NOTOPMOST, HWND_TOP, HWND_TOPMOST, SM_CXFRAME, SM_CYCAPTION,
-		SM_CYFRAME, SWP_NOMOVE, SWP_NOSIZE, SW_HIDE, SW_SHOW, WM_CLOSE,
-	},
+use std::mem;
+use std::ptr;
+
+use winapi::shared::windef::HWND;
+use winapi::um::winuser::{
+	GetWindowInfo, GetWindowRect, SetWindowPos, ShowWindow, SWP_NOACTIVATE, SW_RESTORE, WINDOWINFO,
 };
 
-pub mod gwl_ex_style;
-pub mod gwl_style;
+use crate::common::Rect;
 
-#[derive(Clone)]
-pub struct Window {
-	pub id: i32,
-	pub title: String,
-	pub rule: Option<Rule>,
-	pub style: GwlStyle,
-	pub exstyle: GwlExStyle,
-	pub original_style: GwlStyle,
-	pub original_rect: RECT,
+mod grid;
+pub use grid::spawn_grid_window;
+
+mod preview;
+pub use preview::spawn_preview_window;
+
+#[derive(Clone, Copy, Debug)]
+pub struct Window(pub HWND);
+
+unsafe impl Send for Window {}
+
+impl Window {
+	pub fn rect(self) -> Rect {
+		unsafe {
+			let mut rect = mem::zeroed();
+
+			GetWindowRect(self.0, &mut rect);
+
+			rect.into()
+		}
+	}
+
+	pub fn set_pos(&mut self, rect: Rect, insert_after: Option<Window>) {
+		unsafe {
+			SetWindowPos(
+				self.0,
+				insert_after.unwrap_or_default().0,
+				rect.x,
+				rect.y,
+				rect.width,
+				rect.height,
+				SWP_NOACTIVATE,
+			);
+		}
+	}
+
+	pub unsafe fn info(self) -> WindowInfo {
+		let mut info: WINDOWINFO = mem::zeroed();
+		info.cbSize = mem::size_of::<WINDOWINFO>() as u32;
+
+		GetWindowInfo(self.0, &mut info);
+
+		info.into()
+	}
+
+	pub fn transparent_border(self) -> (i32, i32) {
+		let info = unsafe { self.info() };
+
+		let x = {
+			(info.window_rect.x - info.client_rect.x)
+				+ (info.window_rect.width - info.client_rect.width)
+		};
+
+		let y = {
+			(info.window_rect.y - info.client_rect.y)
+				+ (info.window_rect.height - info.client_rect.height)
+		};
+
+		(x, y)
+	}
+
+	pub fn restore(&mut self) {
+		unsafe {
+			ShowWindow(self.0, SW_RESTORE);
+		};
+	}
 }
 
 impl Default for Window {
 	fn default() -> Self {
-		Self {
-			id: 0,
-			title: String::from(""),
-			rule: None,
-			style: GwlStyle::default(),
-			exstyle: GwlExStyle::default(),
-			original_style: GwlStyle::default(),
-			original_rect: RECT::default(),
-		}
+		Window(ptr::null_mut())
 	}
 }
 
-impl Window {
-	pub fn reset_style(&mut self) -> Result<(), util::WinApiResultError> {
-		self.style = self.original_style;
-
-		Ok(())
+impl PartialEq for Window {
+	fn eq(&self, other: &Window) -> bool {
+		self.0 == other.0
 	}
-	pub fn reset_pos(&self) -> Result<(), util::WinApiResultError> {
-		unsafe {
-			util::winapi_nullable_to_result(SetWindowPos(
-				self.id as HWND,
-				std::ptr::null_mut(),
-				self.original_rect.left,
-				self.original_rect.top,
-				self.original_rect.right - self.original_rect.left,
-				self.original_rect.bottom - self.original_rect.top,
-				0,
-			))?;
+}
+
+#[derive(Debug)]
+pub struct WindowInfo {
+	pub window_rect: Rect,
+	pub client_rect: Rect,
+	pub styles: u32,
+	pub extended_styles: u32,
+	pub x_borders: u32,
+	pub y_borders: u32,
+}
+
+impl From<WINDOWINFO> for WindowInfo {
+	fn from(info: WINDOWINFO) -> Self {
+		WindowInfo {
+			window_rect: info.rcWindow.into(),
+			client_rect: info.rcClient.into(),
+			styles: info.dwStyle,
+			extended_styles: info.dwExStyle,
+			x_borders: info.cxWindowBorders,
+			y_borders: info.cxWindowBorders,
 		}
-
-		Ok(())
-	}
-	pub fn get_foreground_window() -> Result<HWND, util::WinApiResultError> {
-		unsafe { util::winapi_ptr_to_result(GetForegroundWindow()) }
-	}
-	pub fn get_parent_window(&self) -> Result<HWND, util::WinApiResultError> {
-		unsafe { util::winapi_ptr_to_result(GetParent(self.id as HWND)) }
-	}
-	pub fn get_style(&self) -> Result<GwlStyle, util::WinApiResultError> {
-		unsafe {
-			let bits = util::winapi_nullable_to_result(GetWindowLongA(self.id as HWND, GWL_STYLE))?;
-			Ok(GwlStyle::from_bits_unchecked(bits as u32 as i32))
-		}
-	}
-	pub fn get_ex_style(&self) -> Result<GwlExStyle, util::WinApiResultError> {
-		unsafe {
-			let bits =
-				util::winapi_nullable_to_result(GetWindowLongA(self.id as HWND, GWL_EXSTYLE))?;
-			Ok(GwlExStyle::from_bits_unchecked(bits as u32 as i32))
-		}
-	}
-	pub fn get_rect(&self) -> Result<RECT, util::WinApiResultError> {
-		unsafe {
-			let mut temp = RECT::default();
-			util::winapi_nullable_to_result(GetWindowRect(self.id as HWND, &mut temp))?;
-			Ok(temp)
-		}
-	}
-	pub fn show(&self) {
-		unsafe {
-			ShowWindow(self.id as HWND, SW_SHOW);
-		}
-	}
-	pub fn hide(&self) {
-		unsafe {
-			ShowWindow(self.id as HWND, SW_HIDE);
-		}
-	}
-	pub fn calculate_window_rect(&self, x: i32, y: i32, width: i32, height: i32) -> RECT {
-		let rule = self.rule.clone().unwrap_or_default();
-		let (display_app_bar, remove_title_bar, app_bar_height) = {
-			let config = CONFIG.lock().unwrap();
-
-			(
-				config.display_app_bar,
-				config.remove_title_bar,
-				config.app_bar_height,
-			)
-		};
-
-		let mut left = x;
-		let mut right = x + width;
-		let mut top = y;
-		let mut bottom = y + height;
-
-		unsafe {
-			let border_width = GetSystemMetrics(SM_CXFRAME);
-			let border_height = GetSystemMetrics(SM_CYFRAME);
-
-			if rule.chromium || rule.firefox || !remove_title_bar {
-				let caption_height = GetSystemMetrics(SM_CYCAPTION);
-				top += caption_height;
-			} else {
-				top -= border_height * 2;
-				bottom -= border_height / 2;
-
-				left += 1;
-				right -= 1;
-				top += 1;
-				bottom += 1;
-			}
-
-			// if !remove_task_bar {
-			//     bottom -= *task_bar::HEIGHT.lock().unwrap();
-			// }
-
-			if display_app_bar {
-				top += app_bar_height;
-				bottom += app_bar_height;
-			}
-
-			if rule.firefox || rule.chromium || (!remove_title_bar && rule.has_custom_titlebar) {
-				// looks like the frame around firefox is smaller than chrome's frame by about 2 pixels
-				// I don't see any other window that behaves like these two pieces of shit
-
-				if rule.firefox {
-					left -= (border_width as f32 * 1.5) as i32;
-					right += (border_width as f32 * 1.5) as i32;
-					bottom += (border_height as f32 * 1.5) as i32;
-				} else if rule.chromium {
-					left -= border_width * 2;
-					right += border_width * 2;
-					bottom += border_height * 2;
-				}
-				left += border_width * 2;
-				right -= border_width * 2;
-				top += border_height * 2;
-				bottom -= border_height * 2;
-			} else {
-				top += border_height * 2;
-			}
-		}
-
-		let mut rect = RECT {
-			left,
-			right,
-			top,
-			bottom,
-		};
-
-		//println!("before {}", rect_to_string(rect));
-
-		unsafe {
-			AdjustWindowRectEx(
-				&mut rect,
-				self.style.bits() as u32,
-				0,
-				self.exstyle.bits() as u32,
-			);
-		}
-
-		// println!("after {}", rect_to_string(rect));
-
-		rect
-	}
-	pub fn to_foreground(&self, topmost: bool) -> Result<(), util::WinApiResultError> {
-		unsafe {
-			util::winapi_nullable_to_result(SetWindowPos(
-				self.id as HWND,
-				if topmost { HWND_TOPMOST } else { HWND_TOP },
-				0,
-				0,
-				0,
-				0,
-				SWP_NOMOVE | SWP_NOSIZE,
-			))?;
-		}
-
-		Ok(())
-	}
-	pub fn remove_topmost(&self) -> Result<(), util::WinApiResultError> {
-		unsafe {
-			util::winapi_nullable_to_result(SetWindowPos(
-				self.id as HWND,
-				HWND_NOTOPMOST,
-				0,
-				0,
-				0,
-				0,
-				SWP_NOMOVE | SWP_NOSIZE,
-			))?;
-		}
-
-		Ok(())
-	}
-	/**
-	 * This also brings the window to the foreground
-	 */
-	pub fn focus(&self) -> Result<(), util::WinApiResultError> {
-		unsafe {
-			util::winapi_nullable_to_result(SetForegroundWindow(self.id as HWND))?;
-		}
-
-		Ok(())
-	}
-	pub fn send_close(&self) {
-		unsafe {
-			//TODO: Handle Error
-			SendMessageA(self.id as HWND, WM_CLOSE, 0, 0);
-		}
-	}
-	pub fn update_style(&self) {
-		unsafe {
-			SetWindowLongA(self.id as HWND, GWL_STYLE, self.style.bits());
-		}
-	}
-	pub fn update_exstyle(&self) {
-		unsafe {
-			SetWindowLongA(self.id as HWND, GWL_EXSTYLE, self.exstyle.bits());
-		}
-	}
-	pub fn remove_title_bar(&mut self) {
-		let rule = self.rule.clone().unwrap_or_default();
-		if !rule.chromium && !rule.firefox {
-			self.style.remove(GwlStyle::CAPTION);
-			self.style.remove(GwlStyle::THICKFRAME);
-		}
-		self.style.insert(GwlStyle::BORDER);
 	}
 }

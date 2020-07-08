@@ -1,95 +1,28 @@
-use core::fmt::Debug;
-use thiserror::Error;
-use winapi::{
-	shared::windef::{HWND, RECT},
-	um::{
-		wingdi::{GetBValue, GetGValue, GetRValue, RGB},
-		winuser::GetWindowTextA,
-	},
-};
+use crate::{common::Rect, hotkey::HotkeyType, window::Window};
+use std::error::Error;
 
-pub fn get_title_of_window(window_handle: HWND) -> WinApiResult<String> {
-	let mut buffer = [0; 0x200];
+pub type Result<T = (), E = Box<dyn Error>> = std::result::Result<T, E>;
 
-	unsafe {
-		winapi_nullable_to_result(GetWindowTextA(
-			window_handle,
-			buffer.as_mut_ptr(),
-			buffer.len() as i32,
-		))?;
-	};
-
-	Ok(buffer
-		.iter()
-		.take_while(|b| **b != 0)
-		.map(|byte| char::from(*byte as u8))
-		.collect::<String>())
+pub enum Message {
+	PreviewWindow(Window),
+	GridWindow(Window),
+	HighlightZone(Rect),
+	HotkeyPressed(HotkeyType),
+	TrackMouse(Window),
+	ActiveWindowChange(Window),
+	ProfileChange(&'static str),
+	MonitorChange,
+	MouseLeft,
+	InitializeWindows,
+	CloseWindows,
+	Exit,
 }
 
-pub type WinApiResult<T> = Result<T, WinApiResultError>;
-
-#[derive(Debug, Error)]
-pub enum WinApiResultError {
-	#[error("Windows Api errored and returned a value of {0}")]
-	Err(i32),
-	#[error("Windows Api errored and returned a null value")]
-	Null,
-}
-
-#[allow(dead_code)]
-pub fn winapi_err_to_result<T>(input: T) -> WinApiResult<T>
-where
-	T: PartialEq<i32> + Into<i32>,
-{
-	if input == 0 {
-		Ok(input)
-	} else {
-		Err(WinApiResultError::Err(input.into()))
-	}
-}
-
-pub fn winapi_ptr_to_result<T>(input: *mut T) -> WinApiResult<*mut T> {
-	if !input.is_null() {
-		Ok(input)
-	} else {
-		Err(WinApiResultError::Null)
-	}
-}
-
-pub fn winapi_nullable_to_result<T>(input: T) -> WinApiResult<T>
-where
-	T: PartialEq<i32>,
-{
-	if input != 0 {
-		Ok(input)
-	} else {
-		Err(WinApiResultError::Null)
-	}
-}
-
-pub fn to_widestring(string: &str) -> Vec<u16> {
-	string
-		.encode_utf16()
-		.chain(std::iter::once(0))
-		.collect::<Vec<_>>()
-}
-
-#[allow(dead_code)]
-pub fn rect_to_string(rect: RECT) -> String {
-	format!(
-		"RECT(left: {}, right: {}, top: {}, bottom: {})",
-		rect.left, rect.right, rect.top, rect.bottom
-	)
-}
-
-pub fn scale_color(color: i32, factor: f64) -> i32 {
-	let mut blue = GetBValue(color as u32);
-	let mut green = GetGValue(color as u32);
-	let mut red = GetRValue(color as u32);
-
-	blue = (blue as f64 * factor).round() as u8;
-	green = (green as f64 * factor).round() as u8;
-	red = (red as f64 * factor).round() as u8;
-
-	RGB(red, green, blue) as i32
+#[macro_export]
+macro_rules! str_to_wide {
+	($str:expr) => {{
+		$str.encode_utf16()
+			.chain(std::iter::once(0))
+			.collect::<Vec<_>>()
+		}};
 }
