@@ -8,18 +8,18 @@ extern crate log;
 #[macro_use]
 extern crate lazy_static;
 
-use common::{get_foreground_window, Rect};
+use common::get_foreground_window;
 use config::Config;
 use crossbeam_channel::{bounded, select, unbounded, Receiver, Sender};
 use event::*;
 use grid::Grid;
 use hotkey::{spawn_hotkey_thread, HotkeyType};
 use std::{
-	error::Error,
 	mem,
 	sync::{Arc, Mutex},
 };
 use tray::spawn_sys_tray;
+use util::*;
 use winapi::um::winuser::{
 	SetForegroundWindow, ShowWindow, TrackMouseEvent, SW_SHOW, TME_LEAVE, TRACKMOUSEEVENT,
 };
@@ -33,24 +33,8 @@ mod grid;
 mod hotkey;
 mod logging;
 mod tray;
+mod util;
 mod window;
-
-pub type Result<T = (), E = Box<dyn Error>> = std::result::Result<T, E>;
-
-pub enum Message {
-	PreviewWindow(Window),
-	GridWindow(Window),
-	HighlightZone(Rect),
-	HotkeyPressed(HotkeyType),
-	TrackMouse(Window),
-	ActiveWindowChange(Window),
-	ProfileChange(&'static str),
-	MonitorChange,
-	MouseLeft,
-	InitializeWindows,
-	CloseWindows,
-	Exit,
-}
 
 lazy_static! {
 	static ref CONFIG: Arc<Mutex<Config>> = Arc::new(Mutex::new(Config::load().unwrap()));
@@ -59,16 +43,13 @@ lazy_static! {
 	static ref ACTIVE_PROFILE: Arc<Mutex<String>> = Arc::new(Mutex::new("Default".to_owned()));
 }
 
-#[macro_export]
-macro_rules! str_to_wide {
-	($str:expr) => {{
-		$str.encode_utf16()
-			.chain(std::iter::once(0))
-			.collect::<Vec<_>>()
-		}};
+fn main() {
+	if let Err(e) = run() {
+		error!("{:?}", e);
+	}
 }
 
-fn main() -> Result {
+fn run() -> Result {
 	logging::setup()?;
 
 	let receiver = &CHANNEL.1.clone();
