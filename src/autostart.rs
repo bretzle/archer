@@ -11,8 +11,8 @@ use crate::str_to_wide;
 
 pub unsafe fn toggle_autostart_registry_key(enabled: bool) {
 	if let Some(mut app_path) = dirs::config_dir() {
-		app_path.push("grout");
-		app_path.push("grout.exe");
+		app_path.push("wtm");
+		app_path.push("wtm.exe");
 
 		if let Ok(current_path) = env::current_exe() {
 			if current_path != app_path && enabled {
@@ -21,7 +21,7 @@ pub unsafe fn toggle_autostart_registry_key(enabled: bool) {
 
 			let app_path = str_to_wide!(app_path.to_str().unwrap_or_default());
 			let mut key_name = str_to_wide!("Software\\Microsoft\\Windows\\CurrentVersion\\Run");
-			let mut value_name = str_to_wide!("grout");
+			let mut value_name = str_to_wide!("wtm");
 
 			let mut key: HKEY = mem::zeroed();
 

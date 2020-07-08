@@ -29,3 +29,8 @@ features = ["winuser", "wingdi", "libloaderapi", "errhandlingapi", "shellapi", "
 default = ["debug"]
 debug = ["fern/colored", "ctrlc"]
 dev-cfg = []
+
+[profile.release]
+lto = true
+codegen-units = 1
+panic = 'abort'

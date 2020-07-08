@@ -30,7 +30,7 @@ pub fn spawn_grid_window(close_msg: Receiver<()>) {
 	thread::spawn(move || unsafe {
 		let hInstance = GetModuleHandleW(ptr::null());
 
-		let class_name = str_to_wide!("Grout Zone Grid");
+		let class_name = str_to_wide!("Wtm Zone Grid");
 
 		let mut class = mem::zeroed::<WNDCLASSEXW>();
 		class.cbSize = mem::size_of::<WNDCLASSEXW>() as u32;

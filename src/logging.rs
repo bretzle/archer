@@ -16,12 +16,12 @@ pub fn setup() -> Result<(), log::SetLoggerError> {
 		.apply()
 }
 
-#[cfg(not(feature = "debug"))]
+#[cfg(not(debug_assertions))]
 fn level(level: Level) -> Level {
 	level
 }
 
-#[cfg(feature = "debug")]
+#[cfg(debug_assertions)]
 fn level(level: Level) -> fern::colors::WithFgColor<Level> {
 	use fern::colors::{Color, ColoredLevelConfig};
 

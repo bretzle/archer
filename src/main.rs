@@ -1,3 +1,6 @@
+#![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
+#![allow(non_snake_case)]
+
 #[macro_use]
 extern crate serde;
 #[macro_use]
@@ -73,7 +76,7 @@ fn main() -> Result {
 
 	let close_channel = bounded::<()>(3);
 
-	let config = dbg!(CONFIG.lock().unwrap().clone());
+	let config = CONFIG.lock().unwrap().clone();
 
 	unsafe {
 		autostart::toggle_autostart_registry_key(config.auto_start);

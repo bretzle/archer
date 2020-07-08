@@ -40,7 +40,7 @@ pub unsafe fn spawn_sys_tray() {
 	thread::spawn(|| {
 		let hInstance = GetModuleHandleW(ptr::null());
 
-		let class_name = str_to_wide!("Grout Tray");
+		let class_name = str_to_wide!("Wtm Tray");
 
 		let mut class = mem::zeroed::<WNDCLASSEXW>();
 		class.cbSize = mem::size_of::<WNDCLASSEXW>() as u32;
@@ -88,7 +88,7 @@ unsafe fn add_icon(hwnd: HWND) {
 	);
 
 	let mut tooltip_array = [0u16; 128];
-	let tooltip = "Grout";
+	let tooltip = "Wtm";
 	let mut tooltip = tooltip.encode_utf16().collect::<Vec<_>>();
 	tooltip.extend(vec![0; 128 - tooltip.len()]);
 	tooltip_array.swap_with_slice(&mut tooltip[..]);
@@ -193,7 +193,7 @@ unsafe fn show_about() {
 	let mut title = str_to_wide!("About");
 
 	let msg = format!(
-		"Grout - v{}\n\nCopyright © 2020 Cory Forsstrom",
+		"Wtm - v{}\n\nCopyright © 2020 John Bretz",
 		env!("CARGO_PKG_VERSION")
 	);
 
@@ -246,7 +246,7 @@ unsafe extern "system" fn callback(
 				}
 				ID_CONFIG => {
 					if let Some(mut config_path) = dirs::config_dir() {
-						config_path.push("grout");
+						config_path.push("wtm");
 						config_path.push("config.yml");
 
 						if config_path.exists() {

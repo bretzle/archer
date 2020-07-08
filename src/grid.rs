@@ -73,7 +73,7 @@ pub trait GridCache {
 impl GridCache for GridConfigs {
 	fn load() -> GridConfigs {
 		if let Some(mut config_path) = dirs::config_dir() {
-			config_path.push("grout");
+			config_path.push("wtm");
 			config_path.push("cache");
 
 			if !config_path.exists() {
@@ -96,7 +96,7 @@ impl GridCache for GridConfigs {
 
 	fn save(&self) {
 		if let Some(mut config_path) = dirs::config_dir() {
-			config_path.push("grout");
+			config_path.push("wtm");
 			config_path.push("cache");
 			config_path.push("grid.ron");
 
