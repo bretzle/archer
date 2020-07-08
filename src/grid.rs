@@ -1,20 +1,13 @@
-use std::collections::HashMap;
-use std::fs;
-use std::mem;
+mod config;
+mod tile;
 
-use serde::{Deserialize, Serialize};
-
-use winapi::shared::windef::{HBRUSH, HDC};
-use winapi::um::wingdi::{CreateSolidBrush, DeleteObject, RGB};
-use winapi::um::winuser::{BeginPaint, EndPaint, FillRect, FrameRect, PAINTSTRUCT};
-
-use crate::common::{get_active_monitor_name, get_work_area, Rect};
+use crate::common::{get_work_area, Rect};
 use crate::config::Config;
 use crate::window::Window;
-use crate::ACTIVE_PROFILE;
-
-const TILE_WIDTH: u32 = 48;
-const TILE_HEIGHT: u32 = 48;
+use config::*;
+use std::mem;
+use tile::*;
+use winapi::um::winuser::{BeginPaint, EndPaint, PAINTSTRUCT};
 
 pub struct Grid {
 	pub shift_down: bool,
@@ -32,119 +25,6 @@ pub struct Grid {
 	tiles: Vec<Vec<Tile>>, // tiles[row][column]
 	active_config: GridConfigKey,
 	configs: GridConfigs,
-}
-
-#[derive(Serialize, Deserialize, Clone, Copy, Debug)]
-pub struct GridConfig {
-	rows: usize,
-	columns: usize,
-}
-
-impl Default for GridConfig {
-	fn default() -> Self {
-		GridConfig {
-			rows: 2,
-			columns: 2,
-		}
-	}
-}
-
-#[derive(Serialize, Deserialize, PartialEq, Eq, Hash, Clone, Debug)]
-pub struct GridConfigKey {
-	monitor: String,
-	profile: String,
-}
-
-impl Default for GridConfigKey {
-	fn default() -> Self {
-		let monitor = unsafe { get_active_monitor_name() };
-		let profile = ACTIVE_PROFILE.lock().unwrap().clone();
-
-		GridConfigKey { monitor, profile }
-	}
-}
-
-pub type GridConfigs = HashMap<GridConfigKey, GridConfig>;
-pub trait GridCache {
-	fn load() -> GridConfigs;
-	fn save(&self);
-}
-
-impl GridCache for GridConfigs {
-	fn load() -> GridConfigs {
-		if let Some(mut config_path) = dirs::config_dir() {
-			config_path.push("wtm");
-			config_path.push("cache");
-
-			if !config_path.exists() {
-				let _ = fs::create_dir_all(&config_path);
-			}
-
-			config_path.push("grid.ron");
-
-			if let Ok(file) = fs::File::open(config_path) {
-				if let Ok(config) = ron::de::from_reader(file) {
-					return config;
-				}
-			}
-		}
-
-		let mut config = HashMap::new();
-		config.insert(GridConfigKey::default(), GridConfig::default());
-		config
-	}
-
-	fn save(&self) {
-		if let Some(mut config_path) = dirs::config_dir() {
-			config_path.push("wtm");
-			config_path.push("cache");
-			config_path.push("grid.ron");
-
-			if let Ok(serialized) = ron::ser::to_string(&self) {
-				let _ = fs::write(config_path, serialized);
-			}
-		}
-	}
-}
-
-impl From<&Config> for Grid {
-	fn from(config: &Config) -> Self {
-		Grid {
-			zone_margins: config.margin,
-			border_margins: config.padding,
-			..Default::default()
-		}
-	}
-}
-
-impl Default for Grid {
-	fn default() -> Self {
-		let configs = GridConfigs::load();
-		let active_config = GridConfigKey::default();
-
-		let default_config = configs.get(&active_config).cloned().unwrap_or_default();
-
-		let rows = default_config.rows;
-		let columns = default_config.columns;
-
-		Grid {
-			shift_down: false,
-			control_down: false,
-			cursor_down: false,
-			selected_tile: None,
-			hovered_tile: None,
-			active_window: None,
-			grid_window: None,
-			previous_resize: None,
-			quick_resize: false,
-			grid_margins: 3,
-			zone_margins: 10,
-			border_margins: 10,
-			tiles: vec![vec![Tile::default(); columns]; rows],
-			active_config,
-			configs,
-		}
-	}
 }
 
 impl Grid {
@@ -465,37 +345,42 @@ impl Grid {
 	}
 }
 
-#[derive(Default, Clone, Copy, PartialEq)]
-struct Tile {
-	selected: bool,
-	hovered: bool,
+impl Default for Grid {
+	fn default() -> Self {
+		let configs = GridConfigs::load();
+		let active_config = GridConfigKey::default();
+
+		let default_config = configs.get(&active_config).cloned().unwrap_or_default();
+
+		let rows = default_config.rows;
+		let columns = default_config.columns;
+
+		Grid {
+			shift_down: false,
+			control_down: false,
+			cursor_down: false,
+			selected_tile: None,
+			hovered_tile: None,
+			active_window: None,
+			grid_window: None,
+			previous_resize: None,
+			quick_resize: false,
+			grid_margins: 3,
+			zone_margins: 10,
+			border_margins: 10,
+			tiles: vec![vec![Tile::default(); columns]; rows],
+			active_config,
+			configs,
+		}
+	}
 }
 
-impl Tile {
-	unsafe fn draw(self, hdc: HDC, area: Rect) {
-		let fill_brush = self.fill_brush();
-		let frame_brush = CreateSolidBrush(RGB(0, 0, 0));
-
-		FillRect(hdc, &area.into(), fill_brush);
-		FrameRect(hdc, &area.into(), frame_brush);
-
-		DeleteObject(fill_brush as *mut _);
-		DeleteObject(frame_brush as *mut _);
-	}
-
-	unsafe fn fill_brush(self) -> HBRUSH {
-		let color = if self.selected {
-			RGB(0, 77, 128)
-		} else if self.hovered {
-			RGB(0, 100, 148)
-		} else {
-			RGB(
-				(255.0 * (70.0 / 100.0)) as u8,
-				(255.0 * (70.0 / 100.0)) as u8,
-				(255.0 * (70.0 / 100.0)) as u8,
-			)
-		};
-
-		CreateSolidBrush(color)
+impl From<&Config> for Grid {
+	fn from(config: &Config) -> Self {
+		Grid {
+			zone_margins: config.margin,
+			border_margins: config.padding,
+			..Default::default()
+		}
 	}
 }
