@@ -1,21 +1,31 @@
-use crate::{
-	common::{get_foreground_window, report_and_exit},
-	window::Window,
-	Message, CHANNEL, GRID,
-};
-use crossbeam_channel::Sender;
-use std::{mem, ptr, thread};
+use std::mem;
+use std::ptr;
+use std::thread;
+
 use winapi::um::winuser::{
 	DispatchMessageW, GetKeyboardLayout, GetMessageW, RegisterHotKey, TranslateMessage,
 	VkKeyScanExW, MOD_ALT, MOD_CONTROL, MOD_NOREPEAT, MOD_SHIFT, MOD_WIN, WM_HOTKEY,
 };
 
-#[derive(PartialEq, Clone, Copy, Debug)]
+use crate::common::{get_foreground_window, report_and_exit};
+use crate::Message;
+use crate::GRID;
+use crate::{window::Window, CHANNEL};
+use crossbeam_channel::Sender;
+
+#[derive(PartialEq, Deserialize, Clone, Copy, Debug)]
 pub enum HotkeyType {
 	Main,
 	QuickResize,
 	Maximize,
 	Minimize,
+}
+
+#[derive(Debug, Deserialize, Clone)]
+pub struct Keybind {
+	pub hotkey: String,
+	#[serde(rename = "type")]
+	pub typ: HotkeyType,
 }
 
 pub fn spawn_hotkey_thread(hotkey_str: &str, hotkey_type: HotkeyType) {

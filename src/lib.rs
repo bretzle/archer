@@ -23,7 +23,7 @@ use crate::{
 	config::Config,
 	event::{spawn_foreground_hook, spawn_track_monitor_thread},
 	grid::Grid,
-	hotkey::{spawn_hotkey_thread, HotkeyType},
+	hotkey::spawn_hotkey_thread,
 	tray::spawn_sys_tray,
 	util::{Message, Result},
 	window::{spawn_grid_window, spawn_preview_window, Window},
@@ -59,18 +59,22 @@ pub fn run() -> Result {
 		autostart::toggle_autostart_registry_key(config.auto_start);
 	}
 
-	spawn_hotkey_thread(&config.hotkey, HotkeyType::Main);
+	// spawn_hotkey_thread(&config.hotkey, HotkeyType::Main);
 
-	if let Some(hotkey) = &config.hotkey_quick_resize {
-		spawn_hotkey_thread(hotkey, HotkeyType::QuickResize);
-	}
+	// if let Some(hotkey) = &config.hotkey_quick_resize {
+	// 	spawn_hotkey_thread(hotkey, HotkeyType::QuickResize);
+	// }
 
-	if let Some(hotkey_maximize) = &config.hotkey_maximize_toggle {
-		spawn_hotkey_thread(hotkey_maximize, HotkeyType::Maximize);
-	}
+	// if let Some(hotkey_maximize) = &config.hotkey_maximize_toggle {
+	// 	spawn_hotkey_thread(hotkey_maximize, HotkeyType::Maximize);
+	// }
 
-	if let Some(hotkey_minimize) = &config.hotkey_minimize {
-		spawn_hotkey_thread(hotkey_minimize, HotkeyType::Minimize);
+	// if let Some(hotkey_minimize) = &config.hotkey_minimize {
+	// 	spawn_hotkey_thread(hotkey_minimize, HotkeyType::Minimize);
+	// }
+
+	for keybind in &config.keybinds {
+		spawn_hotkey_thread(&keybind.hotkey, keybind.typ);
 	}
 
 	unsafe {
