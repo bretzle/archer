@@ -126,14 +126,16 @@ pub fn handle(
 
 			grid.previous_resize = Some((active_window, active_rect));
 		}
-		HotkeyType::Main => {}
+		HotkeyType::Main => {
+			if preview_window.is_some() && grid_window.is_some() {
+				let _ = sender.send(Message::CloseWindows);
+			} else {
+				let _ = sender.send(Message::InitializeWindows);
+			}
+		}
 		HotkeyType::QuickResize => {
 			let _ = sender.send(Message::InitializeWindows);
 			GRID.lock().unwrap().quick_resize = true;
 		}
-	}
-
-	if preview_window.is_some() && grid_window.is_some() {
-		let _ = sender.send(Message::CloseWindows);
 	}
 }
