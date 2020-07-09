@@ -1,4 +1,3 @@
-
 use crate::{hotkey::Keybind, Result};
 use std::{
 	fs::{self, File},

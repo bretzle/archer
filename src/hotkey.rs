@@ -1,17 +1,14 @@
-use std::mem;
-use std::ptr;
-use std::thread;
-
+use crate::{
+	common::{get_foreground_window, report_and_exit},
+	window::Window,
+	Message, CHANNEL, GRID,
+};
+use crossbeam_channel::Sender;
+use std::{mem, ptr, thread};
 use winapi::um::winuser::{
 	DispatchMessageW, GetKeyboardLayout, GetMessageW, RegisterHotKey, TranslateMessage,
 	VkKeyScanExW, MOD_ALT, MOD_CONTROL, MOD_NOREPEAT, MOD_SHIFT, MOD_WIN, WM_HOTKEY,
 };
-
-use crate::common::{get_foreground_window, report_and_exit};
-use crate::Message;
-use crate::GRID;
-use crate::{window::Window, CHANNEL};
-use crossbeam_channel::Sender;
 
 #[derive(PartialEq, Deserialize, Clone, Copy, Debug)]
 pub enum HotkeyType {
