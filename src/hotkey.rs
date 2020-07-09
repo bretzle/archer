@@ -13,12 +13,19 @@ use crate::GRID;
 use crate::{window::Window, CHANNEL};
 use crossbeam_channel::Sender;
 
-#[derive(PartialEq, Clone, Copy, Debug)]
+#[derive(PartialEq, Deserialize, Clone, Copy, Debug)]
 pub enum HotkeyType {
 	Main,
 	QuickResize,
 	Maximize,
 	Minimize,
+}
+
+#[derive(Debug, Deserialize, Clone)]
+pub struct Keybind {
+	pub hotkey: String,
+	#[serde(rename = "type")]
+	pub typ: HotkeyType,
 }
 
 pub fn spawn_hotkey_thread(hotkey_str: &str, hotkey_type: HotkeyType) {

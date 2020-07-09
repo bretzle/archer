@@ -1,4 +1,5 @@
-use crate::Result;
+
+use crate::{hotkey::Keybind, Result};
 use std::{
 	fs::{self, File},
 	io::Write,
@@ -9,11 +10,8 @@ use std::{
 pub struct Config {
 	pub margin: u8,
 	pub padding: u8,
-	pub hotkey: String,
-	pub hotkey_quick_resize: Option<String>,
-	pub hotkey_maximize_toggle: Option<String>,
 	pub auto_start: bool,
-	pub hotkey_minimize: Option<String>,
+	pub keybinds: Vec<Keybind>,
 }
 
 impl Config {
