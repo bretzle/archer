@@ -1,30 +1,28 @@
-use std::mem;
-use std::ptr;
-use std::thread;
-use std::time::Duration;
-
+use crate::{
+	common::{get_work_area, Rect},
+	str_to_wide,
+	window::Window,
+	Message, CHANNEL, GRID,
+};
 use crossbeam_channel::{select, Receiver};
-
-use winapi::shared::{
-	minwindef::{HIWORD, LOWORD, LPARAM, LRESULT, UINT, WPARAM},
-	windef::HWND,
+use std::{mem, ptr, thread, time::Duration};
+use winapi::{
+	shared::{
+		minwindef::{HIWORD, LOWORD, LPARAM, LRESULT, UINT, WPARAM},
+		windef::HWND,
+	},
+	um::{
+		libloaderapi::GetModuleHandleW,
+		wingdi::{CreateSolidBrush, RGB},
+		winuser::{
+			CreateWindowExW, DefWindowProcW, DispatchMessageW, InvalidateRect, LoadCursorW,
+			PeekMessageW, RegisterClassExW, SendMessageW, TranslateMessage, IDC_ARROW, VK_CONTROL,
+			VK_DOWN, VK_ESCAPE, VK_F1, VK_F2, VK_F3, VK_F4, VK_F5, VK_F6, VK_LEFT, VK_RIGHT,
+			VK_SHIFT, VK_UP, WM_KEYDOWN, WM_KEYUP, WM_LBUTTONDOWN, WM_LBUTTONUP, WM_MOUSELEAVE,
+			WM_MOUSEMOVE, WM_PAINT, WNDCLASSEXW, WS_EX_TOOLWINDOW, WS_EX_TOPMOST, WS_POPUP,
+		},
+	},
 };
-
-use winapi::um::libloaderapi::GetModuleHandleW;
-use winapi::um::wingdi::{CreateSolidBrush, RGB};
-use winapi::um::winuser::{
-	CreateWindowExW, DefWindowProcW, DispatchMessageW, InvalidateRect, LoadCursorW, PeekMessageW,
-	RegisterClassExW, SendMessageW, TranslateMessage, IDC_ARROW, VK_CONTROL, VK_DOWN, VK_ESCAPE,
-	VK_F1, VK_F2, VK_F3, VK_F4, VK_F5, VK_F6, VK_LEFT, VK_RIGHT, VK_SHIFT, VK_UP, WM_KEYDOWN,
-	WM_KEYUP, WM_LBUTTONDOWN, WM_LBUTTONUP, WM_MOUSELEAVE, WM_MOUSEMOVE, WM_PAINT, WNDCLASSEXW,
-	WS_EX_TOOLWINDOW, WS_EX_TOPMOST, WS_POPUP,
-};
-
-use crate::common::{get_work_area, Rect};
-use crate::str_to_wide;
-use crate::window::Window;
-use crate::Message;
-use crate::{CHANNEL, GRID};
 
 pub fn spawn_grid_window(close_msg: Receiver<()>) {
 	thread::spawn(move || unsafe {

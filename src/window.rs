@@ -1,18 +1,18 @@
-use std::mem;
-use std::ptr;
-
-use winapi::shared::windef::HWND;
-use winapi::um::winuser::{
-	GetWindowInfo, GetWindowRect, SetWindowPos, ShowWindow, SWP_NOACTIVATE, SW_RESTORE, WINDOWINFO, SW_MINIMIZE,
+use crate::common::Rect;
+use std::{mem, ptr};
+use winapi::{
+	shared::windef::HWND,
+	um::winuser::{
+		GetWindowInfo, GetWindowRect, SetWindowPos, ShowWindow, SWP_NOACTIVATE, SW_MINIMIZE,
+		SW_RESTORE, WINDOWINFO,
+	},
 };
 
-use crate::common::Rect;
+pub use grid::spawn_grid_window;
+pub use preview::spawn_preview_window;
 
 mod grid;
-pub use grid::spawn_grid_window;
-
 mod preview;
-pub use preview::spawn_preview_window;
 
 #[derive(Clone, Copy, Debug)]
 pub struct Window(pub HWND);

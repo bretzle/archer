@@ -1,24 +1,19 @@
-use std::mem;
-use std::ptr;
-use std::thread;
-use std::time::Duration;
-
+use crate::{common::get_active_monitor_name, window::Window, Message, CHANNEL};
 use crossbeam_channel::{select, Receiver};
-
-use winapi::shared::{
-	minwindef::DWORD,
-	windef::{HWINEVENTHOOK, HWND},
+use std::{mem, ptr, thread, time::Duration};
+use winapi::{
+	shared::{
+		minwindef::DWORD,
+		windef::{HWINEVENTHOOK, HWND},
+	},
+	um::{
+		winnt::LONG,
+		winuser::{
+			DispatchMessageW, PeekMessageW, SetWinEventHook, TranslateMessage,
+			EVENT_SYSTEM_FOREGROUND, WINEVENT_OUTOFCONTEXT,
+		},
+	},
 };
-use winapi::um::winnt::LONG;
-use winapi::um::winuser::{
-	DispatchMessageW, PeekMessageW, SetWinEventHook, TranslateMessage, EVENT_SYSTEM_FOREGROUND,
-	WINEVENT_OUTOFCONTEXT,
-};
-
-use crate::common::get_active_monitor_name;
-use crate::window::Window;
-use crate::Message;
-use crate::CHANNEL;
 
 pub fn spawn_foreground_hook(close_msg: Receiver<()>) {
 	thread::spawn(move || unsafe {

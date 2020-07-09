@@ -1,8 +1,6 @@
-use crate::common::get_active_monitor_name;
-use crate::ACTIVE_PROFILE;
+use crate::{common::get_active_monitor_name, ACTIVE_PROFILE};
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
-use std::fs;
+use std::{collections::HashMap, fs};
 
 #[derive(Serialize, Deserialize, Clone, Copy, Debug)]
 pub(super) struct GridConfig {
@@ -66,7 +64,7 @@ impl GridCache for GridConfigs {
 
 	fn save(&self) {
 		debug!("saving grid config");
-		
+
 		if let Some(mut config_path) = dirs::config_dir() {
 			config_path.push("wtm");
 			config_path.push("cache");

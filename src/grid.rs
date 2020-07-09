@@ -1,9 +1,11 @@
 mod config;
 mod tile;
 
-use crate::common::{get_work_area, Rect};
-use crate::config::Config;
-use crate::window::Window;
+use crate::{
+	common::{get_work_area, Rect},
+	config::Config,
+	window::Window,
+};
 use config::*;
 use std::mem;
 use tile::*;

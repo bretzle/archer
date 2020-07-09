@@ -1,17 +1,15 @@
-use std::fmt::{Display, Error, Formatter};
-use std::mem;
-use std::process;
-use std::ptr;
-
-use winapi::shared::windef::{POINT, RECT};
-use winapi::um::winuser::{
-	GetCursorPos, GetForegroundWindow, GetMonitorInfoW, MessageBoxW, MonitorFromPoint, MB_OK,
-	MONITORINFOEXW, MONITOR_DEFAULTTONEAREST,
+use crate::{str_to_wide, window::Window};
+use std::{
+	fmt::{Display, Error, Formatter},
+	mem, process, ptr,
 };
-
-use crate::window::Window;
-
-use crate::str_to_wide;
+use winapi::{
+	shared::windef::{POINT, RECT},
+	um::winuser::{
+		GetCursorPos, GetForegroundWindow, GetMonitorInfoW, MessageBoxW, MonitorFromPoint, MB_OK,
+		MONITORINFOEXW, MONITOR_DEFAULTTONEAREST,
+	},
+};
 
 /// x & y coordinates are relative to top left of screen
 #[derive(Debug, Clone, Copy, PartialEq)]

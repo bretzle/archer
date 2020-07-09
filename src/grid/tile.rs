@@ -1,7 +1,11 @@
 use crate::common::Rect;
-use winapi::shared::windef::{HBRUSH, HDC};
-use winapi::um::wingdi::{CreateSolidBrush, DeleteObject, RGB};
-use winapi::um::winuser::{FillRect, FrameRect};
+use winapi::{
+	shared::windef::{HBRUSH, HDC},
+	um::{
+		wingdi::{CreateSolidBrush, DeleteObject, RGB},
+		winuser::{FillRect, FrameRect},
+	},
+};
 
 pub(super) const TILE_WIDTH: u32 = 48;
 pub(super) const TILE_HEIGHT: u32 = 48;

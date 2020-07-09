@@ -1,13 +1,12 @@
-use std::env;
-use std::fs;
-use std::mem;
-use std::ptr;
-
-use winapi::shared::minwindef::HKEY;
-use winapi::um::winnt::{KEY_SET_VALUE, REG_OPTION_NON_VOLATILE, REG_SZ};
-use winapi::um::winreg::{RegCreateKeyExW, RegDeleteKeyValueW, RegSetValueExW, HKEY_CURRENT_USER};
-
 use crate::str_to_wide;
+use std::{env, fs, mem, ptr};
+use winapi::{
+	shared::minwindef::HKEY,
+	um::{
+		winnt::{KEY_SET_VALUE, REG_OPTION_NON_VOLATILE, REG_SZ},
+		winreg::{RegCreateKeyExW, RegDeleteKeyValueW, RegSetValueExW, HKEY_CURRENT_USER},
+	},
+};
 
 pub unsafe fn toggle_autostart_registry_key(enabled: bool) {
 	if let Some(mut app_path) = dirs::config_dir() {

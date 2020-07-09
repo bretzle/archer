@@ -1,33 +1,30 @@
-use std::mem;
-use std::ptr;
-use std::thread;
+use std::{mem, ptr, thread};
+use winapi::{
+	shared::{
+		minwindef::{LOWORD, LPARAM, LRESULT, UINT, WPARAM},
+		windef::{HWND, POINT},
+	},
+	um::{
+		libloaderapi::GetModuleHandleW,
+		shellapi::{
+			ShellExecuteW, Shell_NotifyIconW, NIF_ICON, NIF_MESSAGE, NIF_TIP, NIM_ADD, NIM_DELETE,
+			NOTIFYICONDATAW,
+		},
+		wingdi::{CreateSolidBrush, RGB},
+		winuser::{
+			CheckMenuItem, CreateIconFromResourceEx, CreatePopupMenu, CreateWindowExW,
+			DefWindowProcW, DestroyMenu, DispatchMessageW, GetCursorPos, GetMessageW, InsertMenuW,
+			MessageBoxW, PostMessageW, PostQuitMessage, RegisterClassExW, SendMessageW, SetFocus,
+			SetForegroundWindow, SetMenuDefaultItem, SetMenuItemBitmaps, TrackPopupMenu,
+			TranslateMessage, LR_DEFAULTCOLOR, MB_ICONINFORMATION, MB_OK, MF_BYPOSITION,
+			MF_CHECKED, MF_STRING, MF_UNCHECKED, SW_SHOW, TPM_LEFTALIGN, TPM_NONOTIFY,
+			TPM_RETURNCMD, TPM_RIGHTBUTTON, WM_APP, WM_CLOSE, WM_COMMAND, WM_CREATE,
+			WM_INITMENUPOPUP, WM_LBUTTONDBLCLK, WM_RBUTTONUP, WNDCLASSEXW, WS_EX_NOACTIVATE,
+		},
+	},
+};
 
-use winapi::shared::{
-	minwindef::{LOWORD, LPARAM, LRESULT, UINT, WPARAM},
-	windef::{HWND, POINT},
-};
-use winapi::um::libloaderapi::GetModuleHandleW;
-use winapi::um::shellapi::{
-	ShellExecuteW, Shell_NotifyIconW, NIF_ICON, NIF_MESSAGE, NIF_TIP, NIM_ADD, NIM_DELETE,
-	NOTIFYICONDATAW,
-};
-use winapi::um::wingdi::{CreateSolidBrush, RGB};
-use winapi::um::winuser::{
-	CheckMenuItem, CreateIconFromResourceEx, CreatePopupMenu, CreateWindowExW, DefWindowProcW,
-	DestroyMenu, DispatchMessageW, GetCursorPos, GetMessageW, InsertMenuW, MessageBoxW,
-	PostMessageW, PostQuitMessage, RegisterClassExW, SendMessageW, SetFocus, SetForegroundWindow,
-	SetMenuDefaultItem, SetMenuItemBitmaps, TrackPopupMenu, TranslateMessage, LR_DEFAULTCOLOR,
-	MB_ICONINFORMATION, MB_OK, MF_BYPOSITION, MF_CHECKED, MF_STRING, MF_UNCHECKED, SW_SHOW,
-	TPM_LEFTALIGN, TPM_NONOTIFY, TPM_RETURNCMD, TPM_RIGHTBUTTON, WM_APP, WM_CLOSE, WM_COMMAND,
-	WM_CREATE, WM_INITMENUPOPUP, WM_LBUTTONDBLCLK, WM_RBUTTONUP, WNDCLASSEXW, WS_EX_NOACTIVATE,
-};
-
-use crate::autostart;
-use crate::config;
-use crate::str_to_wide;
-use crate::Message;
-use crate::CHANNEL;
-use crate::CONFIG;
+use crate::{autostart, config, str_to_wide, Message, CHANNEL, CONFIG};
 use config::Config;
 
 const ID_ABOUT: u16 = 2000;

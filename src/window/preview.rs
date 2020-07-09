@@ -1,27 +1,21 @@
-use std::mem;
-use std::ptr;
-use std::thread;
-use std::time::Duration;
-
+use crate::{str_to_wide, window::Window, Message, CHANNEL};
 use crossbeam_channel::{select, Receiver};
-
-use winapi::shared::{
-	minwindef::{LPARAM, LRESULT, UINT, WPARAM},
-	windef::HWND,
+use std::{mem, ptr, thread, time::Duration};
+use winapi::{
+	shared::{
+		minwindef::{LPARAM, LRESULT, UINT, WPARAM},
+		windef::HWND,
+	},
+	um::{
+		libloaderapi::GetModuleHandleW,
+		wingdi::{CreateSolidBrush, RGB},
+		winuser::{
+			CreateWindowExW, DefWindowProcW, DispatchMessageW, PeekMessageW, RegisterClassExW,
+			SetLayeredWindowAttributes, TranslateMessage, LWA_ALPHA, WNDCLASSEXW, WS_EX_LAYERED,
+			WS_EX_NOACTIVATE, WS_EX_TOPMOST, WS_EX_TRANSPARENT, WS_POPUP, WS_SYSMENU, WS_VISIBLE,
+		},
+	},
 };
-use winapi::um::libloaderapi::GetModuleHandleW;
-use winapi::um::wingdi::{CreateSolidBrush, RGB};
-
-use winapi::um::winuser::{
-	CreateWindowExW, DefWindowProcW, DispatchMessageW, PeekMessageW, RegisterClassExW,
-	SetLayeredWindowAttributes, TranslateMessage, LWA_ALPHA, WNDCLASSEXW, WS_EX_LAYERED,
-	WS_EX_NOACTIVATE, WS_EX_TOPMOST, WS_EX_TRANSPARENT, WS_POPUP, WS_SYSMENU, WS_VISIBLE,
-};
-
-use crate::str_to_wide;
-use crate::window::Window;
-use crate::Message;
-use crate::CHANNEL;
 
 pub fn spawn_preview_window(close_msg: Receiver<()>) {
 	thread::spawn(move || unsafe {
