@@ -7,15 +7,18 @@ use winapi::um::winuser::{
 	VkKeyScanExW, MOD_ALT, MOD_CONTROL, MOD_NOREPEAT, MOD_SHIFT, MOD_WIN, WM_HOTKEY,
 };
 
-use crate::common::report_and_exit;
+use crate::common::{get_foreground_window, report_and_exit};
 use crate::Message;
-use crate::CHANNEL;
+use crate::GRID;
+use crate::{window::Window, CHANNEL};
+use crossbeam_channel::Sender;
 
 #[derive(PartialEq, Clone, Copy, Debug)]
 pub enum HotkeyType {
 	Main,
 	QuickResize,
 	Maximize,
+	Minimize,
 }
 
 pub fn spawn_hotkey_thread(hotkey_str: &str, hotkey_type: HotkeyType) {
@@ -83,4 +86,54 @@ unsafe fn get_vkcode(key_char: char) -> u32 {
 	}
 
 	vk_code.to_be_bytes()[1] as u32
+}
+
+pub fn handle(
+	hotkey: HotkeyType,
+	sender: &Sender<Message>,
+	preview_window: &Option<Window>,
+	grid_window: &Option<Window>,
+) {
+	match hotkey {
+		HotkeyType::Minimize => get_foreground_window().minimize(),
+		HotkeyType::Maximize => {
+			let mut grid = GRID.lock().unwrap();
+
+			let mut active_window = if grid_window.is_some() {
+				grid.active_window.unwrap()
+			} else {
+				let active_window = get_foreground_window();
+				grid.active_window = Some(active_window);
+				active_window
+			};
+
+			let active_rect = active_window.rect();
+
+			active_window.restore();
+
+			let mut max_rect = grid.get_max_area();
+			max_rect.adjust_for_border(active_window.transparent_border());
+
+			if let Some((_, previous_rect)) = grid.previous_resize {
+				if active_rect == max_rect {
+					active_window.set_pos(previous_rect, None);
+				} else {
+					active_window.set_pos(max_rect, None);
+				}
+			} else {
+				active_window.set_pos(max_rect, None);
+			}
+
+			grid.previous_resize = Some((active_window, active_rect));
+		}
+		HotkeyType::Main => {}
+		HotkeyType::QuickResize => {
+			let _ = sender.send(Message::InitializeWindows);
+			GRID.lock().unwrap().quick_resize = true;
+		}
+	}
+
+	if preview_window.is_some() && grid_window.is_some() {
+		let _ = sender.send(Message::CloseWindows);
+	}
 }

@@ -69,6 +69,10 @@ pub fn run() -> Result {
 		spawn_hotkey_thread(hotkey_maximize, HotkeyType::Maximize);
 	}
 
+	if let Some(hotkey_minimize) = &config.hotkey_minimize {
+		spawn_hotkey_thread(hotkey_minimize, HotkeyType::Minimize);
+	}
+
 	unsafe {
 		spawn_sys_tray();
 	}
@@ -76,6 +80,8 @@ pub fn run() -> Result {
 	let mut preview_window: Option<Window> = None;
 	let mut grid_window: Option<Window> = None;
 	let mut track_mouse = false;
+
+	info!("{:#?}", config);
 
 	loop {
 		select! {
@@ -107,45 +113,7 @@ pub fn run() -> Result {
 						preview_window.set_pos(rect, Some(grid_window));
 					}
 					Message::HotkeyPressed(hotkey_type) => {
-						if hotkey_type == HotkeyType::Maximize {
-							let mut grid = GRID.lock().unwrap();
-
-							let mut active_window = if grid_window.is_some() {
-								grid.active_window.unwrap()
-							} else {
-								let active_window = get_foreground_window();
-								grid.active_window = Some(active_window);
-								active_window
-							};
-
-							let active_rect = active_window.rect();
-
-							active_window.restore();
-
-							let mut max_rect = grid.get_max_area();
-							max_rect.adjust_for_border(active_window.transparent_border());
-
-							if let Some((_, previous_rect)) = grid.previous_resize {
-								if active_rect == max_rect {
-									active_window.set_pos(previous_rect, None);
-								} else {
-									active_window.set_pos(max_rect, None);
-								}
-							} else {
-								active_window.set_pos(max_rect, None);
-							}
-
-							grid.previous_resize = Some((active_window, active_rect));
-
-						} else if preview_window.is_some() && grid_window.is_some() {
-							let _ = sender.send(Message::CloseWindows);
-						} else {
-							let _ = sender.send(Message::InitializeWindows);
-
-							if hotkey_type == HotkeyType::QuickResize {
-								GRID.lock().unwrap().quick_resize = true;
-							}
-						}
+						hotkey::handle(hotkey_type, &sender, &preview_window, &grid_window);
 					}
 					Message::TrackMouse(window) => unsafe {
 						if !track_mouse {

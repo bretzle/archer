@@ -3,6 +3,7 @@ use std::error::Error;
 
 pub type Result<T = (), E = Box<dyn Error>> = std::result::Result<T, E>;
 
+#[derive(Debug)]
 pub enum Message {
 	PreviewWindow(Window),
 	GridWindow(Window),

@@ -3,7 +3,7 @@ use std::ptr;
 
 use winapi::shared::windef::HWND;
 use winapi::um::winuser::{
-	GetWindowInfo, GetWindowRect, SetWindowPos, ShowWindow, SWP_NOACTIVATE, SW_RESTORE, WINDOWINFO,
+	GetWindowInfo, GetWindowRect, SetWindowPos, ShowWindow, SWP_NOACTIVATE, SW_RESTORE, WINDOWINFO, SW_MINIMIZE,
 };
 
 use crate::common::Rect;
@@ -73,6 +73,12 @@ impl Window {
 		unsafe {
 			ShowWindow(self.0, SW_RESTORE);
 		};
+	}
+
+	pub fn minimize(&mut self) {
+		unsafe {
+			ShowWindow(self.0, SW_MINIMIZE);
+		}
 	}
 }
 

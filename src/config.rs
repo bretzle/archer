@@ -13,6 +13,7 @@ pub struct Config {
 	pub hotkey_quick_resize: Option<String>,
 	pub hotkey_maximize_toggle: Option<String>,
 	pub auto_start: bool,
+	pub hotkey_minimize: Option<String>,
 }
 
 impl Config {
