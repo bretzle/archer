@@ -10,7 +10,7 @@ use winapi::{
 
 pub unsafe fn toggle_autostart_registry_key(enabled: bool) {
 	if let Some(mut app_path) = dirs::config_dir() {
-		app_path.push("wtm");
+		app_path.push(".wtm");
 		app_path.push("wtm.exe");
 
 		if let Ok(current_path) = env::current_exe() {

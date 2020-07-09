@@ -1,4 +1,6 @@
 use crate::{hotkey::Keybind, Result};
+
+#[cfg(not(feature = "dev-cfg"))]
 use std::{
 	fs::{self, File},
 	io::Write,
@@ -22,7 +24,7 @@ impl Config {
 			None => PathBuf::new(),
 		};
 
-		path.push("wtm");
+		path.push(".wtm");
 
 		if !path.exists() {
 			debug!("Config folder doesn't exist. Creating folder.");
