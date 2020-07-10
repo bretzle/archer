@@ -1,6 +1,6 @@
 use crate::{
-	common::{get_work_area, Rect},
 	str_to_wide,
+	util::{get_work_area, Rect},
 	window::Window,
 	Message, CHANNEL, GRID,
 };

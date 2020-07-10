@@ -1,4 +1,4 @@
-use crate::common::Rect;
+use crate::util::Rect;
 use std::{mem, ptr};
 use winapi::{
 	shared::windef::HWND,

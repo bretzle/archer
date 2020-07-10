@@ -1,4 +1,4 @@
-use crate::{common::get_active_monitor_name, window::Window, Message, CHANNEL};
+use crate::{util::get_active_monitor_name, window::Window, Message, CHANNEL};
 use crossbeam_channel::{select, Receiver};
 use std::{mem, ptr, thread, time::Duration};
 use winapi::{

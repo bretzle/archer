@@ -1,5 +1,5 @@
 use crate::{
-	common::{get_foreground_window, report_and_exit},
+	util::{get_foreground_window, report_and_exit},
 	window::Window,
 	Message, CHANNEL, GRID,
 };

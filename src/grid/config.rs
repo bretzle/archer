@@ -1,4 +1,4 @@
-use crate::{common::get_active_monitor_name, ACTIVE_PROFILE};
+use crate::{util::get_active_monitor_name, ACTIVE_PROFILE};
 use serde::{Deserialize, Serialize};
 use std::{collections::HashMap, fs};
 

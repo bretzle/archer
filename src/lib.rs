@@ -8,7 +8,6 @@ extern crate log;
 extern crate lazy_static;
 
 mod autostart;
-mod common;
 mod config;
 mod event;
 mod grid;
@@ -19,13 +18,12 @@ mod util;
 mod window;
 
 use crate::{
-	common::get_foreground_window,
 	config::Config,
 	event::{spawn_foreground_hook, spawn_track_monitor_thread},
 	grid::Grid,
 	hotkey::spawn_hotkey_thread,
 	tray::spawn_sys_tray,
-	util::{Message, Result},
+	util::{get_foreground_window, Message, Result},
 	window::{spawn_grid_window, spawn_preview_window, Window},
 };
 use crossbeam_channel::{bounded, select, unbounded, Receiver, Sender};

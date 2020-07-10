@@ -1,4 +1,4 @@
-use crate::common::Rect;
+use crate::util::Rect;
 use winapi::{
 	shared::windef::{HBRUSH, HDC},
 	um::{

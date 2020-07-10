@@ -2,8 +2,8 @@ mod config;
 mod tile;
 
 use crate::{
-	common::{get_work_area, Rect},
 	config::Config,
+	util::{get_work_area, Rect},
 	window::Window,
 };
 use config::*;
