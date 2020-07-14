@@ -1,3 +1,5 @@
+//! Autostart module
+
 use crate::str_to_wide;
 use std::{env, fs, mem, ptr};
 use winapi::{
@@ -8,6 +10,7 @@ use winapi::{
 	},
 };
 
+/// Registers / Unregisters the autostart registry key in Windows
 pub unsafe fn toggle_autostart_registry_key(enabled: bool) {
 	if let Some(mut app_path) = dirs::config_dir() {
 		app_path.push(".wtm");

@@ -1,3 +1,5 @@
+//! Grid module
+
 mod config;
 mod tile;
 
@@ -11,15 +13,26 @@ use std::mem;
 use tile::*;
 use winapi::um::winuser::{BeginPaint, EndPaint, PAINTSTRUCT};
 
+//TODO document this better
+/// The grid! 
 pub struct Grid {
+	/// is the Shift key down
 	pub shift_down: bool,
+	/// is the Control key down
 	pub control_down: bool,
+	/// is the mouse down
 	pub cursor_down: bool,
+	/// The selected tile
 	pub selected_tile: Option<(usize, usize)>,
+	/// The tile the mouse is hovering over
 	pub hovered_tile: Option<(usize, usize)>,
+	/// The active window
 	pub active_window: Option<Window>,
+	/// The grid's window that the grid will be drawn on
 	pub grid_window: Option<Window>,
+	/// The last resize operation
 	pub previous_resize: Option<(Window, Rect)>,
+	/// is quick resize being used
 	pub quick_resize: bool,
 	grid_margins: u8,
 	zone_margins: u8,
@@ -30,6 +43,7 @@ pub struct Grid {
 }
 
 impl Grid {
+	/// Resets the grid
 	pub fn reset(&mut self) {
 		self.shift_down = false;
 		self.control_down = false;
@@ -62,6 +76,7 @@ impl Grid {
 		self.configs.save();
 	}
 
+	/// Get the dimensions of the grid window
 	pub fn dimensions(&self) -> (u32, u32) {
 		let width = self.columns() as u32 * TILE_WIDTH
 			+ (self.columns() as u32 + 1) * self.grid_margins as u32;
@@ -109,11 +124,13 @@ impl Grid {
 		self.tiles[0].len()
 	}
 
+	/// Adds a row to the grid
 	pub fn add_row(&mut self) {
 		self.tiles.push(vec![Tile::default(); self.columns()]);
 		self.save_config();
 	}
 
+	/// Adds a column to the grid
 	pub fn add_column(&mut self) {
 		for row in self.tiles.iter_mut() {
 			row.push(Tile::default());
@@ -121,6 +138,7 @@ impl Grid {
 		self.save_config();
 	}
 
+	/// Removes a row from the grid
 	pub fn remove_row(&mut self) {
 		if self.rows() > 1 {
 			self.tiles.pop();
@@ -128,6 +146,7 @@ impl Grid {
 		self.save_config();
 	}
 
+	/// Removes a column from the grid
 	pub fn remove_column(&mut self) {
 		if self.columns() > 1 {
 			for row in self.tiles.iter_mut() {
@@ -150,6 +169,7 @@ impl Grid {
 		}
 	}
 
+	/// Recenters the grid window after the a new row or column is added
 	pub fn reposition(&mut self) {
 		let work_area = unsafe { get_work_area() };
 		let dimensions = self.dimensions();
@@ -271,6 +291,7 @@ impl Grid {
 		None
 	}
 
+	/// Selects a tile
 	pub unsafe fn select_tile(&mut self, point: (i32, i32)) -> bool {
 		if self.cursor_down || self.shift_down {
 			return false;
@@ -295,6 +316,7 @@ impl Grid {
 		self.selected_tile != previously_selected
 	}
 
+	/// Gets the max area
 	pub fn get_max_area(&self) -> Rect {
 		let from_zone = self.zone_area(0, 0);
 		let to_zone = self.zone_area(self.rows() - 1, self.columns() - 1);
@@ -307,6 +329,7 @@ impl Grid {
 		}
 	}
 
+	/// Gets the selected area
 	pub unsafe fn selected_area(&mut self) -> Option<Rect> {
 		if let Some(shift_rect) = self.shift_hover_and_calc_rect(false) {
 			return Some(shift_rect);
@@ -319,18 +342,21 @@ impl Grid {
 		}
 	}
 
+	/// Unhighlights all tiles
 	pub fn unhighlight_all_tiles(&mut self) {
 		self.tiles
 			.iter_mut()
 			.for_each(|row| row.iter_mut().for_each(|tile| tile.hovered = false));
 	}
 
+	/// Unselects all tiles
 	pub fn unselect_all_tiles(&mut self) {
 		self.tiles
 			.iter_mut()
 			.for_each(|row| row.iter_mut().for_each(|tile| tile.selected = false));
 	}
 
+	/// Draws the grid to the window
 	pub unsafe fn draw(&self, window: Window) {
 		let mut paint: PAINTSTRUCT = mem::zeroed();
 		//paint.fErase = 1;

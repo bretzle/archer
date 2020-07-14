@@ -1,5 +1,8 @@
+//! Logging module
+
 use log::Level;
 
+/// Setups the logger
 pub fn setup() -> Result<(), log::SetLoggerError> {
 	fern::Dispatch::new()
 		.format(|out, message, record| {

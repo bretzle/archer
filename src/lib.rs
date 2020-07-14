@@ -1,4 +1,10 @@
+//! Wtm 
+//! Window(s) Tiling Manager
+//!
+//! A simple tiling manager that works natively for Windows
+
 #![allow(non_snake_case)]
+#![deny(missing_docs)]
 
 #[macro_use]
 extern crate serde;
@@ -7,15 +13,15 @@ extern crate log;
 #[macro_use]
 extern crate lazy_static;
 
-mod autostart;
-mod config;
-mod event;
-mod grid;
-mod hotkey;
-mod logging;
-mod tray;
-mod util;
-mod window;
+pub mod autostart;
+pub mod config;
+pub mod event;
+pub mod grid;
+pub mod hotkey;
+pub mod logging;
+pub mod tray;
+pub mod util;
+pub mod window;
 
 use crate::{
 	config::Config,
@@ -36,13 +42,18 @@ use winapi::um::winuser::{
 };
 
 lazy_static! {
+	/// The global `Config` instance
 	pub static ref CONFIG: Arc<Mutex<Config>> = Arc::new(Mutex::new(Config::load().unwrap()));
+	/// The global channel used to send [Message](util.struct.Message.html]s
 	pub static ref CHANNEL: (Sender<Message>, Receiver<Message>) = unbounded();
+	/// The global `Grid` instance
 	pub static ref GRID: Arc<Mutex<Grid>> =
 		Arc::new(Mutex::new(Grid::from(&*CONFIG.lock().unwrap())));
+	/// The global Active profile
 	pub static ref ACTIVE_PROFILE: Arc<Mutex<String>> = Arc::new(Mutex::new("Default".to_owned()));
 }
 
+/// Runs the program
 pub fn run() -> Result {
 	logging::setup()?;
 

@@ -1,3 +1,5 @@
+//! Wtm's Config implementation
+
 use crate::{hotkey::Keybind, Result};
 
 #[cfg(not(feature = "dev-cfg"))]
@@ -7,11 +9,16 @@ use std::{
 	path::PathBuf,
 };
 
+/// Wtm's Config
 #[derive(Debug, Deserialize, Clone)]
 pub struct Config {
+	/// Distance between windows in pixels
 	pub margin: u8,
+	/// Distance between monitor egde and windows in pixels
 	pub padding: u8,
+	/// Should the program start automatically
 	pub auto_start: bool,
+	/// A vector of keybinds
 	pub keybinds: Vec<Keybind>,
 }
 
@@ -56,6 +63,7 @@ impl Config {
 		Ok(config)
 	}
 
+	/// Toggles autostart
 	pub fn toggle_autostart() {
 		todo!()
 	}

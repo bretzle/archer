@@ -24,6 +24,7 @@ use winapi::{
 	},
 };
 
+/// Draw's the grid selection window
 pub fn spawn_grid_window(close_msg: Receiver<()>) {
 	thread::spawn(move || unsafe {
 		let hInstance = GetModuleHandleW(ptr::null());

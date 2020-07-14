@@ -1,3 +1,5 @@
+//! Window module
+
 use crate::util::Rect;
 use std::{mem, ptr};
 use winapi::{
@@ -14,12 +16,14 @@ pub use preview::spawn_preview_window;
 mod grid;
 mod preview;
 
+/// A Wrapper around the windows api's window handle
 #[derive(Clone, Copy, Debug)]
 pub struct Window(pub HWND);
 
 unsafe impl Send for Window {}
 
 impl Window {
+	/// Get's the location of the window
 	pub fn rect(self) -> Rect {
 		unsafe {
 			let mut rect = mem::zeroed();
@@ -30,6 +34,7 @@ impl Window {
 		}
 	}
 
+	/// Moves the window to the desired positon and dimensions
 	pub fn set_pos(&mut self, rect: Rect, insert_after: Option<Window>) {
 		unsafe {
 			SetWindowPos(
@@ -44,6 +49,7 @@ impl Window {
 		}
 	}
 
+	/// Get's info about the window
 	pub unsafe fn info(self) -> WindowInfo {
 		let mut info: WINDOWINFO = mem::zeroed();
 		info.cbSize = mem::size_of::<WINDOWINFO>() as u32;
@@ -53,6 +59,7 @@ impl Window {
 		info.into()
 	}
 
+	/// Get's the dimensions of the window without the border
 	pub fn transparent_border(self) -> (i32, i32) {
 		let info = unsafe { self.info() };
 
@@ -69,12 +76,14 @@ impl Window {
 		(x, y)
 	}
 
+	/// Restores the window to it's previous location
 	pub fn restore(&mut self) {
 		unsafe {
 			ShowWindow(self.0, SW_RESTORE);
 		};
 	}
 
+	/// Minimizes the window
 	pub fn minimize(&mut self) {
 		unsafe {
 			ShowWindow(self.0, SW_MINIMIZE);
@@ -94,13 +103,20 @@ impl PartialEq for Window {
 	}
 }
 
+/// Info about the window
 #[derive(Debug)]
 pub struct WindowInfo {
+	/// Dimension's of the window
 	pub window_rect: Rect,
+	/// Dimension's of the actual window
 	pub client_rect: Rect,
+	/// styles
 	pub styles: u32,
+	/// extended styles
 	pub extended_styles: u32,
+	/// x borders
 	pub x_borders: u32,
+	/// y borders
 	pub y_borders: u32,
 }
 

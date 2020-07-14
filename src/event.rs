@@ -1,3 +1,5 @@
+//! Event module
+
 use crate::{util::get_active_monitor_name, window::Window, Message, CHANNEL};
 use crossbeam_channel::{select, Receiver};
 use std::{mem, ptr, thread, time::Duration};
@@ -15,6 +17,8 @@ use winapi::{
 	},
 };
 
+// TODO figure out what this does
+/// 
 pub fn spawn_foreground_hook(close_msg: Receiver<()>) {
 	thread::spawn(move || unsafe {
 		SetWinEventHook(
@@ -42,6 +46,7 @@ pub fn spawn_foreground_hook(close_msg: Receiver<()>) {
 	});
 }
 
+/// Keeps track of which monitor is active
 pub fn spawn_track_monitor_thread(close_msg: Receiver<()>) {
 	thread::spawn(move || unsafe {
 		let sender = &CHANNEL.0.clone();

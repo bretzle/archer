@@ -1,3 +1,5 @@
+//! Tray module
+
 use std::{mem, ptr, thread};
 use winapi::{
 	shared::{
@@ -33,6 +35,7 @@ const ID_CONFIG: u16 = 2002;
 const ID_AUTOSTART: u16 = 2003;
 static mut MODAL_SHOWN: bool = false;
 
+/// Creates the tray application
 pub unsafe fn spawn_sys_tray() {
 	thread::spawn(|| {
 		let hInstance = GetModuleHandleW(ptr::null());

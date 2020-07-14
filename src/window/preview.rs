@@ -17,6 +17,7 @@ use winapi::{
 	},
 };
 
+/// Draw's a blue preview over the highlighted part of the grid
 pub fn spawn_preview_window(close_msg: Receiver<()>) {
 	thread::spawn(move || unsafe {
 		let hInstance = GetModuleHandleW(ptr::null());

@@ -1,3 +1,5 @@
+//! Hotkey module
+
 use crate::{
 	util::{get_foreground_window, report_and_exit},
 	window::Window,
@@ -10,21 +12,31 @@ use winapi::um::winuser::{
 	VkKeyScanExW, MOD_ALT, MOD_CONTROL, MOD_NOREPEAT, MOD_SHIFT, MOD_WIN, WM_HOTKEY,
 };
 
+/// The Commands that a keybind can execute
 #[derive(PartialEq, Deserialize, Clone, Copy, Debug)]
 pub enum HotkeyType {
+	/// Open the grid window and resize as many windows until executed again
 	Main,
+	/// Quick Resize the current window
 	QuickResize,
+	/// Maximizes the current window
 	Maximize,
+	/// Minimizes the current window
 	Minimize,
 }
 
+/// A keybind
 #[derive(Debug, Deserialize, Clone)]
 pub struct Keybind {
+	/// The sequence of key(s) that need to be pressed in combination to execute a command
 	pub hotkey: String,
+	/// The command that the keybind should execute
 	#[serde(rename = "type")]
 	pub typ: HotkeyType,
 }
 
+/// Spawn's a thread that will listen for a specific hotkey and sends a Message to execute a command
+/// See [Keybind](struct.Keybind.html) and [hotkey::handle](fn.handle.html) for more information
 pub fn spawn_hotkey_thread(hotkey_str: &str, hotkey_type: HotkeyType) {
 	let mut hotkey: Vec<String> = hotkey_str
 		.split('+')
@@ -92,6 +104,7 @@ unsafe fn get_vkcode(key_char: char) -> u32 {
 	vk_code.to_be_bytes()[1] as u32
 }
 
+/// Process's commands when a keybind is pressed
 pub fn handle(
 	hotkey: HotkeyType,
 	sender: &Sender<Message>,
