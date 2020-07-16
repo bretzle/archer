@@ -1,4 +1,4 @@
-use crate::{display::Display, event::Event, send_message, util, CONFIG, DISPLAY};
+use crate::{display::Display, event::Event, get_app, get_config, send_message, util::*, APPBAR};
 use lazy_static::lazy_static;
 use log::{debug, info};
 use std::{ffi::CString, sync::Mutex, thread};
@@ -99,12 +99,13 @@ pub fn set_font(dc: HDC) {
 
 pub fn load_font() {
 	unsafe {
+		let config = get_config();
 		let mut logfont = LOGFONTA::default();
 		let mut font_name: [i8; 32] = [0; 32];
-		let app_bar_font = CONFIG.lock().unwrap().app_bar_font.clone();
-		let app_bar_font_size = CONFIG.lock().unwrap().app_bar_font_size;
+		let app_bar_font = config.app_bar_font.clone();
+		let app_bar_font_size = config.app_bar_font_size;
 
-		for (i, byte) in CString::new(app_bar_font.as_str())
+		for (i, byte) in CString::new(app_bar_font)
 			.unwrap()
 			.as_bytes()
 			.iter()
@@ -124,12 +125,13 @@ pub fn load_font() {
 	}
 }
 
-pub fn create(display: &Display) -> Result<(), util::WinApiResultError> {
+pub fn create(display: &Display) {
 	info!("Creating appbar");
 	let name = "wwm_app_bar";
+	let config = get_config();
 	let mut height_guard = HEIGHT.lock().unwrap();
 
-	*height_guard = CONFIG.lock().unwrap().app_bar_height;
+	*height_guard = config.app_bar_height;
 
 	let height = *height_guard;
 	let display_width = display.width;
@@ -147,7 +149,7 @@ pub fn create(display: &Display) -> Result<(), util::WinApiResultError> {
 		//TODO: Handle error
 		let instance = winapi::um::libloaderapi::GetModuleHandleA(std::ptr::null_mut());
 		//TODO: Handle error
-		let background_brush = CreateSolidBrush(CONFIG.lock().unwrap().app_bar_bg as u32);
+		let background_brush = CreateSolidBrush(config.app_bar_bg as u32);
 
 		let class = WNDCLASSA {
 			hInstance: instance as HINSTANCE,
@@ -185,8 +187,6 @@ pub fn create(display: &Display) -> Result<(), util::WinApiResultError> {
 			DispatchMessageW(&msg);
 		}
 	});
-
-	Ok(())
 }
 
 #[allow(dead_code)]
@@ -208,31 +208,27 @@ pub fn show() {
 	draw_datetime(hwnd).expect("Failed to draw datetime");
 }
 
-pub fn draw_datetime(hwnd: HWND) -> Result<(), util::WinApiResultError> {
+pub fn draw_datetime(hwnd: HWND) -> Result<(), WinApiError> {
 	if !hwnd.is_null() {
 		let mut rect = RECT::default();
 
 		unsafe {
 			debug!("Getting the rect for the appbar");
-			util::winapi_nullable_to_result(GetClientRect(hwnd, &mut rect))?;
+			GetClientRect(hwnd, &mut rect).as_result()?;
 			let text = format!("{}", chrono::Local::now().format("%T"));
 			let text_len = text.len() as i32;
 			let c_text = CString::new(text).unwrap();
-			let display = DISPLAY.lock().unwrap();
+			let display = APPBAR.lock().unwrap().display;
+			let config = get_config();
 
 			debug!("Getting the device context");
-			let hdc = util::winapi_ptr_to_result(GetDC(hwnd))?;
+			let hdc = GetDC(hwnd).as_result()?;
 
 			set_font(hdc);
 
 			let mut size = SIZE::default();
 
-			util::winapi_nullable_to_result(GetTextExtentPoint32A(
-				hdc,
-				c_text.as_ptr(),
-				text_len,
-				&mut size,
-			))?;
+			GetTextExtentPoint32A(hdc, c_text.as_ptr(), text_len, &mut size).as_result()?;
 
 			rect.left = display.width / 2 - (size.cx / 2) - 10;
 			rect.right = display.width / 2 + (size.cx / 2) + 10;
@@ -242,39 +238,36 @@ pub fn draw_datetime(hwnd: HWND) -> Result<(), util::WinApiResultError> {
 			SetTextColor(hdc, 0x00ffffff);
 
 			debug!("Setting the background color");
-			SetBkColor(hdc, CONFIG.lock().unwrap().app_bar_bg as u32);
+			SetBkColor(hdc, config.app_bar_bg as u32);
 
 			debug!("Writing the time");
-			util::winapi_nullable_to_result(DrawTextA(
+			DrawTextA(
 				hdc,
 				c_text.as_ptr(),
 				text_len,
 				&mut rect,
 				DT_CENTER | DT_VCENTER | DT_SINGLELINE,
-			))?;
+			)
+			.as_result()?;
 
 			let text = format!("{}", chrono::Local::now().format("%e %b %Y"));
 			let text_len = text.len() as i32;
 			let c_text = CString::new(text).unwrap();
 
-			util::winapi_nullable_to_result(GetTextExtentPoint32A(
-				hdc,
-				c_text.as_ptr(),
-				text_len,
-				&mut size,
-			))?;
+			GetTextExtentPoint32A(hdc, c_text.as_ptr(), text_len, &mut size).as_result()?;
 
 			rect.right = display.width - 10;
 			rect.left = rect.right - size.cx;
 
 			debug!("Writing the date");
-			util::winapi_nullable_to_result(DrawTextA(
+			DrawTextA(
 				hdc,
 				c_text.as_ptr(),
 				text_len,
 				&mut rect,
 				DT_CENTER | DT_VCENTER | DT_SINGLELINE,
-			))?;
+			)
+			.as_result()?;
 		}
 	}
 

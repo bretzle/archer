@@ -1,12 +1,15 @@
-use appbar::*;
-use log::error;
+use appbar::AppBar;
 
 fn main() {
 	logging::setup().expect("Failed to setup logging");
 
-	if let Err(e) = run() {
-		error!("An error occured {:?}", e);
-	}
+	let bar = AppBar::create().unwrap();
+
+	bar.start();
+
+	println!("{:?}", AppBar::create());
+
+	loop {}
 }
 
 mod logging {

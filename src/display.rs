@@ -1,13 +1,13 @@
 use winapi::um::winuser::{GetSystemMetrics, SM_CXSCREEN, SM_CYSCREEN};
 
-#[derive(Default)]
+#[derive(Debug, Copy, Clone)]
 pub struct Display {
 	pub height: i32,
 	pub width: i32,
 }
 
-impl Display {
-	pub fn new() -> Self {
+impl Default for Display {
+	fn default() -> Self {
 		unsafe {
 			Self {
 				height: GetSystemMetrics(SM_CYSCREEN),
