@@ -2,6 +2,7 @@ use thiserror::Error;
 
 pub type WinApiResult<T> = Result<T, WinApiResultError>;
 
+#[allow(dead_code)]
 #[derive(Debug, Error)]
 pub enum WinApiResultError {
 	#[error("Windows Api errored and returned a value of {0}")]

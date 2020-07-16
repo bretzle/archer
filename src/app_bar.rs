@@ -1,7 +1,7 @@
 use crate::{display::Display, event::Event, send_message, util, CONFIG, DISPLAY};
 use lazy_static::lazy_static;
 use log::{debug, info};
-use std::{ffi::CString, sync::Mutex};
+use std::{ffi::CString, sync::Mutex, thread};
 use winapi::{
 	shared::{
 		minwindef::{HINSTANCE, LPARAM, LRESULT, UINT, WPARAM},
@@ -134,8 +134,8 @@ pub fn create(display: &Display) -> Result<(), util::WinApiResultError> {
 	let height = *height_guard;
 	let display_width = display.width;
 
-	std::thread::spawn(|| loop {
-		std::thread::sleep(std::time::Duration::from_millis(950));
+	thread::spawn(|| loop {
+		thread::sleep(std::time::Duration::from_millis(950));
 		if *WINDOW.lock().unwrap() == 0 {
 			break;
 		}
@@ -143,7 +143,7 @@ pub fn create(display: &Display) -> Result<(), util::WinApiResultError> {
 			.expect("Failed to send redraw-app-bar event");
 	});
 
-	std::thread::spawn(move || unsafe {
+	thread::spawn(move || unsafe {
 		//TODO: Handle error
 		let instance = winapi::um::libloaderapi::GetModuleHandleA(std::ptr::null_mut());
 		//TODO: Handle error
