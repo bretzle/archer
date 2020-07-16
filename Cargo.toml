@@ -1,0 +1,29 @@
+[package]
+name = "appbar"
+version = "0.1.0"
+authors = ["bretzle <johnfish218@gmail.com>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+log = "0.4"
+notify = "4.0.15"
+fern = "0.5"
+chrono = "0.4"
+lazy_static = "1.4.0"
+num-traits = "0.2"
+num-derive = "0.3"
+strum = "0.18.0"
+strum_macros = "0.18.0"
+dirs = "2.0"
+crossbeam-channel = "0.4"
+yaml-rust = "0.4.4"
+bitflags = "1.2"
+thiserror = "1.0"
+ctrlc = { version = "3.0", features = ["termination"] }
+regex = "1"
+
+[dependencies.winapi]
+version = "0.3.9"
+features = ["winuser", "errhandlingapi", "impl-default", "shellapi", "windowsx", "libloaderapi"]
