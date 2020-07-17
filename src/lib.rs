@@ -1,3 +1,4 @@
+use app_bar::RedrawAppBarReason;
 use components::Component;
 use config::Config;
 use crossbeam_channel::{select, SendError};
@@ -5,10 +6,9 @@ use display::Display;
 use event::{Event, EventChannel};
 use once_cell::sync::OnceCell;
 use std::{fmt::Debug, thread};
-use app_bar::RedrawAppBarReason;
 
 mod app_bar;
-mod components;
+pub mod components;
 mod config;
 mod display;
 mod event;
@@ -28,7 +28,7 @@ pub struct AppBar {
 }
 
 impl AppBar {
-	pub fn create() -> &'static mut AppBar {
+	pub fn create() -> &'static mut Self {
 		unsafe {
 			match INSTANCE.get_mut() {
 				Some(instance) => instance,
@@ -56,6 +56,11 @@ impl AppBar {
 				}
 			}
 		});
+	}
+
+	pub fn with_component(&'static mut self, component: Box<dyn Component>) -> &'static mut Self {
+		self.components.push(component);
+		self
 	}
 
 	pub(crate) fn config() -> Config {
