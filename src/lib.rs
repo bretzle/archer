@@ -4,7 +4,6 @@ use display::Display;
 use event::{Event, EventChannel};
 use once_cell::sync::OnceCell;
 use std::thread;
-use app_bar::load_font;
 
 mod app_bar;
 mod config;
@@ -36,20 +35,15 @@ impl AppBar {
 
 	pub fn start(&self) {
 		thread::spawn(|| {
-			let receiver = CHANNEL
-				.get_or_init(|| EventChannel::default())
-				.receiver
-				.clone();
+			let receiver = CHANNEL.get_or_init(EventChannel::default).receiver.clone();
 
 			app_bar::create(&Display::default());
 
 			loop {
 				select! {
-					recv(receiver) -> maybe_msg => {
-						let msg = maybe_msg.unwrap();
-						match msg {
-							Event::RedrawAppBar(reason) => app_bar::redraw(reason),
-							_ => {}
+					recv(receiver) -> msg => {
+						if let Event::RedrawAppBar(reason) = msg.unwrap() {
+							app_bar::redraw(reason);
 						}
 					}
 				}

@@ -9,6 +9,7 @@ use winapi::{
 		windowsx::GET_X_LPARAM,
 	},
 	um::{
+		libloaderapi::GetModuleHandleA,
 		wingdi::{
 			CreateFontIndirectA, CreateSolidBrush, GetTextExtentPoint32A, SelectObject, SetBkColor,
 			SetTextColor, LOGFONTA,
@@ -102,7 +103,7 @@ pub fn load_font() {
 		let config = AppBar::config();
 		let mut logfont = LOGFONTA::default();
 		let mut font_name: [i8; 32] = [0; 32];
-		let app_bar_font = config.app_bar_font.clone();
+		let app_bar_font = config.app_bar_font;
 		let app_bar_font_size = config.app_bar_font_size;
 
 		for (i, byte) in CString::new(app_bar_font)
@@ -147,7 +148,7 @@ pub fn create(display: &Display) {
 
 	thread::spawn(move || unsafe {
 		//TODO: Handle error
-		let instance = winapi::um::libloaderapi::GetModuleHandleA(std::ptr::null_mut());
+		let instance = GetModuleHandleA(std::ptr::null_mut());
 		//TODO: Handle error
 		let background_brush = CreateSolidBrush(config.app_bar_bg as u32);
 
