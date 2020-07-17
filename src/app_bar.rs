@@ -1,4 +1,4 @@
-use crate::{display::Display, event::Event, get_app, get_config, send_message, util::*, APPBAR};
+use crate::{display::Display, event::Event, get_config, send_message, util::*, APPBAR};
 use lazy_static::lazy_static;
 use log::{debug, info};
 use std::{ffi::CString, sync::Mutex, thread};

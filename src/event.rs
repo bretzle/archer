@@ -4,7 +4,7 @@ use crossbeam_channel::{unbounded, Receiver, Sender};
 #[derive(Debug)]
 pub enum Event {
 	RedrawAppBar(RedrawAppBarReason),
-	__Nonexhaustive
+	__Nonexhaustive,
 }
 
 pub type EventSender = Sender<Event>;

@@ -4,12 +4,11 @@ use display::Display;
 use event::{Event, EventChannel};
 use io::ErrorKind;
 use lazy_static::lazy_static;
-use log::info;
 use std::{
-	io::{self, Error},
+	io,
 	sync::{
 		atomic::{AtomicBool, Ordering},
-		Arc, Mutex, MutexGuard,
+		Arc, Mutex,
 	},
 	thread,
 };
@@ -69,10 +68,6 @@ impl AppBar {
 
 pub fn send_message(msg: Event) -> Result<(), SendError<Event>> {
 	CHANNEL.sender.send(msg)
-}
-
-fn get_app() -> MutexGuard<'static, AppBar> {
-	APPBAR.lock().unwrap()
 }
 
 fn get_config() -> Config {

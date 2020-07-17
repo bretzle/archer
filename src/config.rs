@@ -16,10 +16,3 @@ impl Default for Config {
 		}
 	}
 }
-
-impl Config {
-	/// Creates a new default config.
-	pub fn new() -> Self {
-		Self::default()
-	}
-}
