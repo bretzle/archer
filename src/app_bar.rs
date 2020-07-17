@@ -1,7 +1,6 @@
 use crate::{event::Event, util::*, AppBar, INSTANCE};
-use lazy_static::lazy_static;
 use log::{debug, info};
-use std::{ffi::CString, sync::Mutex, thread};
+use std::{ffi::CString, thread};
 use winapi::{
 	shared::{
 		minwindef::{HINSTANCE, LPARAM, LRESULT, UINT, WPARAM},
@@ -24,16 +23,15 @@ use winapi::{
 	},
 };
 
-lazy_static! {
-	pub static ref HEIGHT: Mutex<i32> = Mutex::new(0);
-	pub static ref WINDOW: Mutex<i32> = Mutex::new(0);
-	pub static ref FONT: Mutex<i32> = Mutex::new(0);
-	pub static ref REDRAW_REASON: Mutex<RedrawAppBarReason> = Mutex::new(RedrawAppBarReason::Time);
-}
-
 #[derive(Copy, Clone, Debug)]
 pub enum RedrawAppBarReason {
 	Time,
+}
+
+impl Default for RedrawAppBarReason {
+	fn default() -> Self {
+		RedrawAppBarReason::Time
+	}
 }
 
 unsafe extern "system" fn window_cb(
@@ -43,7 +41,7 @@ unsafe extern "system" fn window_cb(
 	l_param: LPARAM,
 ) -> LRESULT {
 	if msg == WM_CLOSE {
-		*WINDOW.lock().unwrap() = 0;
+		AppBar::get_mut().window = 0;
 	} else if msg == WM_SETCURSOR {
 		// Force a normal cursor. This probably shouldn't be done this way but whatever
 		SetCursor(LoadCursorA(std::ptr::null_mut(), IDC_ARROW as *const i8));
@@ -55,7 +53,7 @@ unsafe extern "system" fn window_cb(
 		load_font();
 	} else if !hwnd.is_null() && msg == WM_PAINT {
 		info!("Received paint");
-		let reason = *REDRAW_REASON.lock().unwrap();
+		let reason = AppBar::get().redraw_reason;
 		debug!("Reason for paint was {:?}", reason);
 		let mut paint = PAINTSTRUCT::default();
 
@@ -77,13 +75,13 @@ unsafe extern "system" fn window_cb(
 
 pub fn redraw(reason: RedrawAppBarReason) {
 	unsafe {
-		let hwnd = *WINDOW.lock().unwrap() as HWND;
+		let hwnd = AppBar::get().window as HWND;
 
 		if hwnd == 0 as HWND {
 			return;
 		}
 
-		*REDRAW_REASON.lock().unwrap() = reason;
+		AppBar::get_mut().redraw_reason = reason;
 
 		//TODO: handle error
 		SendMessageA(hwnd, WM_PAINT, 0, 0);
@@ -94,7 +92,7 @@ fn draw_workspaces(_hwnd: HWND) {}
 
 pub fn set_font(dc: HDC) {
 	unsafe {
-		SelectObject(dc, *FONT.lock().unwrap() as *mut std::ffi::c_void);
+		SelectObject(dc, AppBar::get().font as *mut std::ffi::c_void);
 	}
 }
 
@@ -103,8 +101,8 @@ pub fn load_font() {
 		let config = AppBar::config();
 		let mut logfont = LOGFONTA::default();
 		let mut font_name: [i8; 32] = [0; 32];
-		let app_bar_font = config.app_bar_font;
-		let app_bar_font_size = config.app_bar_font_size;
+		let app_bar_font = config.font;
+		let app_bar_font_size = config.font_size;
 
 		for (i, byte) in CString::new(app_bar_font)
 			.unwrap()
@@ -122,7 +120,7 @@ pub fn load_font() {
 
 		debug!("Using font {}", font);
 
-		*FONT.lock().unwrap() = font;
+		AppBar::get_mut().font = font;
 	}
 }
 
@@ -130,16 +128,13 @@ pub fn create() {
 	info!("Creating appbar");
 	let name = "app_bar";
 	let config = AppBar::config();
-	let mut height_guard = HEIGHT.lock().unwrap();
 
-	*height_guard = config.app_bar_height;
-
-	let height = *height_guard;
+	let height = config.height;
 	let display_width = AppBar::get().display.width;
 
 	thread::spawn(|| loop {
 		thread::sleep(std::time::Duration::from_millis(950));
-		if *WINDOW.lock().unwrap() == 0 {
+		if AppBar::get().window == 0 {
 			break;
 		}
 		AppBar::send_message(Event::RedrawAppBar(RedrawAppBarReason::Time))
@@ -150,7 +145,7 @@ pub fn create() {
 		//TODO: Handle error
 		let instance = GetModuleHandleA(std::ptr::null_mut());
 		//TODO: Handle error
-		let background_brush = CreateSolidBrush(config.app_bar_bg as u32);
+		let background_brush = CreateSolidBrush(config.bg_color as u32);
 
 		let class = WNDCLASSA {
 			hInstance: instance as HINSTANCE,
@@ -178,7 +173,7 @@ pub fn create() {
 			std::ptr::null_mut(),
 		);
 
-		*WINDOW.lock().unwrap() = window_handle as i32;
+		AppBar::get_mut().window = window_handle as i32;
 
 		show();
 
@@ -193,13 +188,13 @@ pub fn create() {
 #[allow(dead_code)]
 pub fn hide() {
 	unsafe {
-		let hwnd = *WINDOW.lock().unwrap(); // Need to eager evaluate else there is a deadlock
-		ShowWindow(hwnd as HWND, SW_HIDE);
+		let hwnd = AppBar::get().window as HWND; // Need to eager evaluate else there is a deadlock
+		ShowWindow(hwnd, SW_HIDE);
 	}
 }
 
 pub fn show() {
-	let hwnd = *WINDOW.lock().unwrap() as HWND; // Need to eager evaluate else there is a deadlock
+	let hwnd = AppBar::get().window as HWND; // Need to eager evaluate else there is a deadlock
 
 	unsafe {
 		ShowWindow(hwnd, SW_SHOW);
@@ -239,7 +234,7 @@ pub fn draw_datetime(hwnd: HWND) -> Result<(), WinApiError> {
 			SetTextColor(hdc, 0x00ffffff);
 
 			debug!("Setting the background color");
-			SetBkColor(hdc, config.app_bar_bg as u32);
+			SetBkColor(hdc, config.bg_color as u32);
 
 			debug!("Writing the time");
 			DrawTextA(

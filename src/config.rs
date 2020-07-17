@@ -1,18 +1,18 @@
 #[derive(Debug, Copy, Clone)]
 pub struct Config {
-	pub app_bar_height: i32,
-	pub app_bar_bg: i32,
-	pub app_bar_font: &'static str,
-	pub app_bar_font_size: i32,
+	pub height: i32,
+	pub bg_color: i32,
+	pub font: &'static str,
+	pub font_size: i32,
 }
 
 impl Default for Config {
 	fn default() -> Self {
 		Self {
-			app_bar_height: 20,
-			app_bar_bg: 0x2C2427,
-			app_bar_font: "Consolas",
-			app_bar_font_size: 18,
+			height: 20,
+			bg_color: 0x2C2427,
+			font: "Consolas",
+			font_size: 18,
 		}
 	}
 }

@@ -5,6 +5,7 @@ use display::Display;
 use event::{Event, EventChannel};
 use once_cell::sync::OnceCell;
 use std::{fmt::Debug, thread};
+use app_bar::RedrawAppBarReason;
 
 mod app_bar;
 mod components;
@@ -20,6 +21,9 @@ static CHANNEL: OnceCell<EventChannel> = OnceCell::new();
 pub struct AppBar {
 	display: Display,
 	config: Config,
+	window: i32,
+	font: i32,
+	redraw_reason: RedrawAppBarReason,
 	components: Vec<Box<dyn Component>>,
 }
 
@@ -60,6 +64,10 @@ impl AppBar {
 
 	pub(crate) fn get() -> &'static Self {
 		unsafe { INSTANCE.get_unchecked() }
+	}
+
+	pub(crate) fn get_mut() -> &'static mut Self {
+		unsafe { INSTANCE.get_mut().unwrap() }
 	}
 
 	pub(crate) fn send_message(msg: Event) -> Result<(), SendError<Event>> {
