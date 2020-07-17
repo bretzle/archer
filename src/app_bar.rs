@@ -1,4 +1,4 @@
-use crate::{display::Display, event::Event, get_config, send_message, util::*, APPBAR};
+use crate::{display::Display, event::Event, util::*, AppBar, INSTANCE};
 use lazy_static::lazy_static;
 use log::{debug, info};
 use std::{ffi::CString, sync::Mutex, thread};
@@ -99,7 +99,7 @@ pub fn set_font(dc: HDC) {
 
 pub fn load_font() {
 	unsafe {
-		let config = get_config();
+		let config = AppBar::config();
 		let mut logfont = LOGFONTA::default();
 		let mut font_name: [i8; 32] = [0; 32];
 		let app_bar_font = config.app_bar_font.clone();
@@ -128,7 +128,7 @@ pub fn load_font() {
 pub fn create(display: &Display) {
 	info!("Creating appbar");
 	let name = "wwm_app_bar";
-	let config = get_config();
+	let config = AppBar::config();
 	let mut height_guard = HEIGHT.lock().unwrap();
 
 	*height_guard = config.app_bar_height;
@@ -141,7 +141,7 @@ pub fn create(display: &Display) {
 		if *WINDOW.lock().unwrap() == 0 {
 			break;
 		}
-		send_message(Event::RedrawAppBar(RedrawAppBarReason::Time))
+		AppBar::send_message(Event::RedrawAppBar(RedrawAppBarReason::Time))
 			.expect("Failed to send redraw-app-bar event");
 	});
 
@@ -218,8 +218,8 @@ pub fn draw_datetime(hwnd: HWND) -> Result<(), WinApiError> {
 			let text = format!("{}", chrono::Local::now().format("%T"));
 			let text_len = text.len() as i32;
 			let c_text = CString::new(text).unwrap();
-			let display = APPBAR.lock().unwrap().display;
-			let config = get_config();
+			let display = INSTANCE.get().unwrap().display;
+			let config = AppBar::config();
 
 			debug!("Getting the device context");
 			let hdc = GetDC(hwnd).as_result()?;

@@ -2,6 +2,8 @@ use appbar::AppBar;
 
 #[test]
 fn singleton() {
-	assert!(AppBar::create().is_ok());
-	assert!(AppBar::create().is_err());
+	let a = AppBar::create();
+	let b = AppBar::create();
+
+	assert_eq!(a as *const _, b as *const _);
 }

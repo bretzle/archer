@@ -2,16 +2,9 @@ use config::Config;
 use crossbeam_channel::{select, SendError};
 use display::Display;
 use event::{Event, EventChannel};
-use io::ErrorKind;
-use lazy_static::lazy_static;
-use std::{
-	io,
-	sync::{
-		atomic::{AtomicBool, Ordering},
-		Arc, Mutex,
-	},
-	thread,
-};
+use once_cell::sync::OnceCell;
+use std::thread;
+use app_bar::load_font;
 
 mod app_bar;
 mod config;
@@ -19,35 +12,34 @@ mod display;
 mod event;
 mod util;
 
-static RUNNING: AtomicBool = AtomicBool::new(false);
+static mut INSTANCE: OnceCell<AppBar> = OnceCell::new();
+static CHANNEL: OnceCell<EventChannel> = OnceCell::new();
 
-lazy_static! {
-	static ref CHANNEL: EventChannel = EventChannel::default();
-	static ref APPBAR: Arc<Mutex<AppBar>> = Arc::new(Mutex::new(AppBar::default()));
-}
-
-#[derive(Debug, Copy, Clone, Default)]
+#[derive(Debug, Default)]
 pub struct AppBar {
 	display: Display,
 	config: Config,
 }
 
 impl AppBar {
-	pub fn create() -> io::Result<AppBar> {
-		if RUNNING.load(Ordering::SeqCst) == false {
-			lazy_static::initialize(&APPBAR);
-
-			RUNNING.store(true, Ordering::SeqCst);
-
-			Ok(*APPBAR.clone().lock().unwrap())
-		} else {
-			Err(ErrorKind::AlreadyExists.into())
+	pub fn create() -> &'static mut AppBar {
+		unsafe {
+			match INSTANCE.get_mut() {
+				Some(instance) => instance,
+				None => {
+					INSTANCE.set(AppBar::default()).unwrap();
+					INSTANCE.get_mut().unwrap()
+				}
+			}
 		}
 	}
 
 	pub fn start(&self) {
 		thread::spawn(|| {
-			let receiver = CHANNEL.receiver.clone();
+			let receiver = CHANNEL
+				.get_or_init(|| EventChannel::default())
+				.receiver
+				.clone();
 
 			app_bar::create(&Display::default());
 
@@ -64,12 +56,12 @@ impl AppBar {
 			}
 		});
 	}
-}
 
-pub fn send_message(msg: Event) -> Result<(), SendError<Event>> {
-	CHANNEL.sender.send(msg)
-}
+	pub(crate) fn config() -> Config {
+		unsafe { INSTANCE.get().unwrap().config }
+	}
 
-fn get_config() -> Config {
-	APPBAR.lock().unwrap().config
+	pub(crate) fn send_message(msg: Event) -> Result<(), SendError<Event>> {
+		CHANNEL.get().unwrap().sender.send(msg)
+	}
 }
