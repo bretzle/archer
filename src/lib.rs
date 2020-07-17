@@ -5,7 +5,7 @@ use crossbeam_channel::{select, SendError};
 use display::Display;
 use event::{Event, EventChannel};
 use once_cell::sync::OnceCell;
-use std::{fmt::Debug, thread};
+use std::{collections::HashMap, fmt::Debug, thread};
 
 mod app_bar;
 pub mod components;
@@ -24,7 +24,7 @@ pub struct AppBar {
 	window: i32,
 	font: i32,
 	redraw_reason: RedrawAppBarReason,
-	components: Vec<Box<dyn Component>>,
+	components: HashMap<RedrawAppBarReason, Box<dyn Component>>,
 }
 
 impl AppBar {
@@ -59,7 +59,7 @@ impl AppBar {
 	}
 
 	pub fn with_component(&'static mut self, component: Box<dyn Component>) -> &'static mut Self {
-		self.components.push(component);
+		self.components.insert(component.reason(), component);
 		self
 	}
 

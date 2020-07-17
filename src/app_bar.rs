@@ -1,29 +1,25 @@
-use crate::{util::*, AppBar, INSTANCE};
+use crate::AppBar;
 use log::{debug, info};
 use std::{ffi::CString, thread};
 use winapi::{
 	shared::{
 		minwindef::{HINSTANCE, LPARAM, LRESULT, UINT, WPARAM},
-		windef::{HBRUSH, HDC, HWND, RECT, SIZE},
+		windef::{HBRUSH, HDC, HWND},
 		windowsx::GET_X_LPARAM,
 	},
 	um::{
 		libloaderapi::GetModuleHandleA,
-		wingdi::{
-			CreateFontIndirectA, CreateSolidBrush, GetTextExtentPoint32A, SelectObject, SetBkColor,
-			SetTextColor, LOGFONTA,
-		},
+		wingdi::{CreateFontIndirectA, CreateSolidBrush, SelectObject, LOGFONTA},
 		winuser::{
-			BeginPaint, DefWindowProcA, DispatchMessageW, DrawTextA, EndPaint, GetClientRect,
-			GetDC, GetMessageW, LoadCursorA, RegisterClassA, SendMessageA, SetCursor, ShowWindow,
-			TranslateMessage, DT_CENTER, DT_SINGLELINE, DT_VCENTER, IDC_ARROW, MSG, PAINTSTRUCT,
-			SW_HIDE, SW_SHOW, WM_CLOSE, WM_CREATE, WM_LBUTTONDOWN, WM_PAINT, WM_SETCURSOR,
-			WNDCLASSA,
+			BeginPaint, DefWindowProcA, DispatchMessageW, EndPaint, GetClientRect, GetMessageW,
+			LoadCursorA, RegisterClassA, SendMessageA, SetCursor, ShowWindow, TranslateMessage,
+			IDC_ARROW, MSG, PAINTSTRUCT, SW_HIDE, SW_SHOW, WM_CLOSE, WM_CREATE, WM_LBUTTONDOWN,
+			WM_PAINT, WM_SETCURSOR, WNDCLASSA,
 		},
 	},
 };
 
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone, Debug, Eq, PartialEq, Hash)]
 pub enum RedrawAppBarReason {
 	Time,
 }
@@ -61,10 +57,12 @@ unsafe extern "system" fn window_cb(
 
 		BeginPaint(hwnd, &mut paint);
 
-		match reason {
-			RedrawAppBarReason::Time => {
-				draw_datetime(hwnd).expect("Failed to draw datetime");
-			}
+		let components = &AppBar::get().components;
+
+		if let Some(component) = components.get(&reason) {
+			component
+				.draw(hwnd)
+				.expect(&format!("Failed to draw component: {:?}", component));
 		}
 
 		EndPaint(hwnd, &paint);
@@ -131,7 +129,7 @@ pub fn create() {
 	let height = config.height;
 	let display_width = AppBar::get().display.width;
 
-	for component in app.components.iter() {
+	for component in app.components.values() {
 		info!("Setting up component: {:?}", component);
 		component.setup();
 	}
@@ -195,73 +193,7 @@ pub fn show() {
 		ShowWindow(hwnd, SW_SHOW);
 	}
 
-	for component in AppBar::get().components.iter() {
+	for component in AppBar::get().components.values() {
 		component.draw(hwnd).expect("Failed to draw datetime")
 	}
-}
-
-pub fn draw_datetime(hwnd: HWND) -> Result<(), WinApiError> {
-	if !hwnd.is_null() {
-		let mut rect = RECT::default();
-
-		unsafe {
-			debug!("Getting the rect for the appbar");
-			GetClientRect(hwnd, &mut rect).as_result()?;
-			let text = format!("{}", chrono::Local::now().format("%T"));
-			let text_len = text.len() as i32;
-			let c_text = CString::new(text).unwrap();
-			let display = INSTANCE.get().unwrap().display;
-			let config = AppBar::config();
-
-			debug!("Getting the device context");
-			let hdc = GetDC(hwnd).as_result()?;
-
-			set_font(hdc);
-
-			let mut size = SIZE::default();
-
-			GetTextExtentPoint32A(hdc, c_text.as_ptr(), text_len, &mut size).as_result()?;
-
-			rect.left = display.width / 2 - (size.cx / 2) - 10;
-			rect.right = display.width / 2 + (size.cx / 2) + 10;
-
-			debug!("Setting the text color");
-			//TODO: handle error
-			SetTextColor(hdc, 0x00ffffff);
-
-			debug!("Setting the background color");
-			SetBkColor(hdc, config.bg_color as u32);
-
-			debug!("Writing the time");
-			DrawTextA(
-				hdc,
-				c_text.as_ptr(),
-				text_len,
-				&mut rect,
-				DT_CENTER | DT_VCENTER | DT_SINGLELINE,
-			)
-			.as_result()?;
-
-			let text = format!("{}", chrono::Local::now().format("%e %b %Y"));
-			let text_len = text.len() as i32;
-			let c_text = CString::new(text).unwrap();
-
-			GetTextExtentPoint32A(hdc, c_text.as_ptr(), text_len, &mut size).as_result()?;
-
-			rect.right = display.width - 10;
-			rect.left = rect.right - size.cx;
-
-			debug!("Writing the date");
-			DrawTextA(
-				hdc,
-				c_text.as_ptr(),
-				text_len,
-				&mut rect,
-				DT_CENTER | DT_VCENTER | DT_SINGLELINE,
-			)
-			.as_result()?;
-		}
-	}
-
-	Ok(())
 }
