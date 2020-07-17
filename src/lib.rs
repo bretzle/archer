@@ -1,11 +1,13 @@
+use components::Component;
 use config::Config;
 use crossbeam_channel::{select, SendError};
 use display::Display;
 use event::{Event, EventChannel};
 use once_cell::sync::OnceCell;
-use std::thread;
+use std::{fmt::Debug, thread};
 
 mod app_bar;
+mod components;
 mod config;
 mod display;
 mod event;
@@ -18,6 +20,7 @@ static CHANNEL: OnceCell<EventChannel> = OnceCell::new();
 pub struct AppBar {
 	display: Display,
 	config: Config,
+	components: Vec<Box<dyn Component>>,
 }
 
 impl AppBar {
@@ -37,7 +40,7 @@ impl AppBar {
 		thread::spawn(|| {
 			let receiver = CHANNEL.get_or_init(EventChannel::default).receiver.clone();
 
-			app_bar::create(&Display::default());
+			app_bar::create();
 
 			loop {
 				select! {
@@ -53,6 +56,10 @@ impl AppBar {
 
 	pub(crate) fn config() -> Config {
 		unsafe { INSTANCE.get().unwrap().config }
+	}
+
+	pub(crate) fn get() -> &'static Self {
+		unsafe { INSTANCE.get_unchecked() }
 	}
 
 	pub(crate) fn send_message(msg: Event) -> Result<(), SendError<Event>> {

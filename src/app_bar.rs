@@ -1,4 +1,4 @@
-use crate::{display::Display, event::Event, util::*, AppBar, INSTANCE};
+use crate::{event::Event, util::*, AppBar, INSTANCE};
 use lazy_static::lazy_static;
 use log::{debug, info};
 use std::{ffi::CString, sync::Mutex, thread};
@@ -126,16 +126,16 @@ pub fn load_font() {
 	}
 }
 
-pub fn create(display: &Display) {
+pub fn create() {
 	info!("Creating appbar");
-	let name = "wwm_app_bar";
+	let name = "app_bar";
 	let config = AppBar::config();
 	let mut height_guard = HEIGHT.lock().unwrap();
 
 	*height_guard = config.app_bar_height;
 
 	let height = *height_guard;
-	let display_width = display.width;
+	let display_width = AppBar::get().display.width;
 
 	thread::spawn(|| loop {
 		thread::sleep(std::time::Duration::from_millis(950));
