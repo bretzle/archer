@@ -7,7 +7,5 @@ fn main() {
 
 	bar.start();
 
-	println!("{:?}", AppBar::create());
-
 	loop {}
 }
