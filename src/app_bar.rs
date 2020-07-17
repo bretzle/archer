@@ -62,7 +62,7 @@ unsafe extern "system" fn window_cb(
 		if let Some(component) = components.get(&reason) {
 			component
 				.draw(hwnd)
-				.expect(&format!("Failed to draw component: {:?}", component));
+				.unwrap_or_else(|_| panic!("Failed to draw component: {:?}", component));
 		}
 
 		EndPaint(hwnd, &paint);

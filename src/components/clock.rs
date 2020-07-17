@@ -1,10 +1,9 @@
 use crate::{
 	app_bar::{set_font, RedrawAppBarReason},
 	event::Event,
-	util::WinApiError,
-	AppBar, Component,
+	util::*,
+	AppBar, Component, INSTANCE,
 };
-use crate::{util::*, INSTANCE};
 use log::debug;
 use std::{ffi::CString, thread};
 use winapi::{
