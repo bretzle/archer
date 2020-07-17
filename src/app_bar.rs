@@ -1,4 +1,4 @@
-use crate::{event::Event, util::*, AppBar, INSTANCE};
+use crate::{util::*, AppBar, INSTANCE};
 use log::{debug, info};
 use std::{ffi::CString, thread};
 use winapi::{
@@ -88,8 +88,6 @@ pub fn redraw(reason: RedrawAppBarReason) {
 	}
 }
 
-fn draw_workspaces(_hwnd: HWND) {}
-
 pub fn set_font(dc: HDC) {
 	unsafe {
 		SelectObject(dc, AppBar::get().font as *mut std::ffi::c_void);
@@ -127,19 +125,16 @@ pub fn load_font() {
 pub fn create() {
 	info!("Creating appbar");
 	let name = "app_bar";
-	let config = AppBar::config();
+	let app = AppBar::get();
+	let config = app.config;
 
 	let height = config.height;
 	let display_width = AppBar::get().display.width;
 
-	thread::spawn(|| loop {
-		thread::sleep(std::time::Duration::from_millis(950));
-		if AppBar::get().window == 0 {
-			break;
-		}
-		AppBar::send_message(Event::RedrawAppBar(RedrawAppBarReason::Time))
-			.expect("Failed to send redraw-app-bar event");
-	});
+	for component in app.components.iter() {
+		info!("Setting up component: {:?}", component);
+		component.setup();
+	}
 
 	thread::spawn(move || unsafe {
 		//TODO: Handle error
@@ -200,8 +195,9 @@ pub fn show() {
 		ShowWindow(hwnd, SW_SHOW);
 	}
 
-	draw_workspaces(hwnd);
-	draw_datetime(hwnd).expect("Failed to draw datetime");
+	for component in AppBar::get().components.iter() {
+		component.draw(hwnd).expect("Failed to draw datetime")
+	}
 }
 
 pub fn draw_datetime(hwnd: HWND) -> Result<(), WinApiError> {
