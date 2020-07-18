@@ -1,10 +1,15 @@
-use crate::AppBar;
+use crate::{
+	event::{Event, WinEvent},
+	util::PtrExt,
+	AppBar,
+};
 use log::{debug, info};
-use std::{ffi::CString, thread};
+use std::{ffi::CString, ptr, thread, time::Duration};
 use winapi::{
 	shared::{
-		minwindef::{HINSTANCE, LPARAM, LRESULT, UINT, WPARAM},
-		windef::{HBRUSH, HDC, HWND},
+		minwindef::{DWORD, HINSTANCE, LPARAM, LRESULT, UINT, WPARAM},
+		ntdef::LONG,
+		windef::{HBRUSH, HDC, HWINEVENTHOOK, HWND},
 		windowsx::GET_X_LPARAM,
 	},
 	um::{
@@ -12,8 +17,9 @@ use winapi::{
 		wingdi::{CreateFontIndirectA, CreateSolidBrush, SelectObject, LOGFONTA},
 		winuser::{
 			BeginPaint, DefWindowProcA, DispatchMessageW, EndPaint, GetClientRect, GetMessageW,
-			LoadCursorA, RegisterClassA, SendMessageA, SetCursor, ShowWindow, TranslateMessage,
-			IDC_ARROW, MSG, PAINTSTRUCT, SW_HIDE, SW_SHOW, WM_CLOSE, WM_CREATE, WM_LBUTTONDOWN,
+			LoadCursorA, PeekMessageW, RegisterClassA, SendMessageA, SetCursor, SetWinEventHook,
+			ShowWindow, TranslateMessage, EVENT_MAX, EVENT_MIN, IDC_ARROW, MSG, OBJID_WINDOW,
+			PAINTSTRUCT, PM_REMOVE, SW_HIDE, SW_SHOW, WM_CLOSE, WM_CREATE, WM_LBUTTONDOWN,
 			WM_PAINT, WM_SETCURSOR, WNDCLASSA,
 		},
 	},
@@ -40,7 +46,7 @@ unsafe extern "system" fn window_cb(
 		AppBar::get_mut().window = 0;
 	} else if msg == WM_SETCURSOR {
 		// Force a normal cursor. This probably shouldn't be done this way but whatever
-		SetCursor(LoadCursorA(std::ptr::null_mut(), IDC_ARROW as *const i8));
+		SetCursor(LoadCursorA(ptr::null_mut(), IDC_ARROW as *const i8));
 	} else if msg == WM_LBUTTONDOWN {
 		let x = GET_X_LPARAM(l_param);
 		info!("Received mouse click @ {}", x);
@@ -69,6 +75,28 @@ unsafe extern "system" fn window_cb(
 	}
 
 	DefWindowProcA(hwnd, msg, w_param, l_param)
+}
+
+unsafe extern "system" fn handler(
+	_: HWINEVENTHOOK,
+	event_code: DWORD,
+	window_handle: HWND,
+	object_type: LONG,
+	_: LONG,
+	_: DWORD,
+	_: DWORD,
+) {
+	if object_type != OBJID_WINDOW {
+		return;
+	}
+
+	if AppBar::get().window == window_handle as i32 {
+		return;
+	}
+
+	if let Some(event) = WinEvent::from_code(event_code, window_handle as i32) {
+		AppBar::send_message(Event::WinEvent(event)).unwrap();
+	}
 }
 
 pub fn redraw(reason: RedrawAppBarReason) {
@@ -136,7 +164,7 @@ pub fn create() {
 
 	thread::spawn(move || unsafe {
 		//TODO: Handle error
-		let instance = GetModuleHandleA(std::ptr::null_mut());
+		let instance = GetModuleHandleA(ptr::null_mut());
 		//TODO: Handle error
 		let background_brush = CreateSolidBrush(config.bg_color as u32);
 
@@ -160,20 +188,51 @@ pub fn create() {
 			0,
 			display_width,
 			height,
-			std::ptr::null_mut(),
-			std::ptr::null_mut(),
+			ptr::null_mut(),
+			ptr::null_mut(),
 			instance as HINSTANCE,
-			std::ptr::null_mut(),
+			ptr::null_mut(),
 		);
 
 		AppBar::get_mut().window = window_handle as i32;
 
-		show();
+		let hwnd = show();
+
+		for component in AppBar::get().components.values() {
+			component.draw(hwnd).expect("Failed to draw datetime")
+		}
 
 		let mut msg: MSG = MSG::default();
 		while GetMessageW(&mut msg, window_handle, 0, 0) > 0 {
 			TranslateMessage(&msg);
 			DispatchMessageW(&msg);
+		}
+	});
+
+	thread::spawn(|| unsafe {
+		let mut msg: MSG = MSG::default();
+
+		debug!("Registering win event hook");
+
+		let _hook = SetWinEventHook(
+			EVENT_MIN,
+			EVENT_MAX,
+			ptr::null_mut(),
+			Some(handler),
+			0,
+			0,
+			0,
+		)
+		.as_result()
+		.unwrap();
+
+		loop {
+			while PeekMessageW(&mut msg, 0 as HWND, 0, 0, PM_REMOVE) > 0 {
+				TranslateMessage(&msg);
+				DispatchMessageW(&msg);
+			}
+
+			thread::sleep(Duration::from_millis(5));
 		}
 	});
 }
@@ -186,14 +245,12 @@ pub fn hide() {
 	}
 }
 
-pub fn show() {
+pub fn show() -> HWND {
 	let hwnd = AppBar::get().window as HWND; // Need to eager evaluate else there is a deadlock
 
 	unsafe {
 		ShowWindow(hwnd, SW_SHOW);
 	}
 
-	for component in AppBar::get().components.values() {
-		component.draw(hwnd).expect("Failed to draw datetime")
-	}
+	hwnd
 }

@@ -49,8 +49,17 @@ impl AppBar {
 			loop {
 				select! {
 					recv(receiver) -> msg => {
-						if let Event::RedrawAppBar(reason) = msg.unwrap() {
-							app_bar::redraw(reason);
+						let msg = msg.unwrap();
+						match msg {
+							Event::RedrawAppBar(reason) => app_bar::redraw(reason),
+							Event::WinEvent(_) => {
+								if util::is_fullscreen() {
+									app_bar::hide();
+								} else {
+									app_bar::show();
+								}
+							},
+							_ => {}
 						}
 					}
 				}

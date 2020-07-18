@@ -1,5 +1,9 @@
 use std::marker::Sized;
 use thiserror::Error;
+use winapi::{
+	shared::windef::RECT,
+	um::winuser::{GetDesktopWindow, GetForegroundWindow, GetWindowRect},
+};
 
 pub type WinApiResult<T> = Result<T, WinApiError>;
 
@@ -48,4 +52,17 @@ impl<T> PtrExt for *mut T {
 			Err(WinApiError::Null)
 		}
 	}
+}
+
+pub fn is_fullscreen() -> bool {
+	let mut a = RECT::default();
+	let mut b = RECT::default();
+
+	unsafe {
+		let hwnd = GetForegroundWindow();
+		GetWindowRect(hwnd, &mut a);
+		GetWindowRect(GetDesktopWindow(), &mut b);
+	}
+
+	return a.left == b.left && a.top == b.top && a.right == b.right && a.bottom == b.bottom;
 }
