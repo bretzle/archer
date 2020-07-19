@@ -6,6 +6,7 @@ use display::Display;
 use event::{Event, EventChannel};
 use once_cell::sync::OnceCell;
 use std::{collections::HashMap, fmt::Debug, thread};
+use winsapi::Font;
 
 mod app_bar;
 pub mod components;
@@ -21,7 +22,7 @@ pub struct AppBar {
 	display: Display,
 	config: Config,
 	window: Option<i32>,
-	font: i32,
+	font: Font,
 	redraw_reason: RedrawReason,
 	components: HashMap<RedrawReason, Box<dyn Component>>,
 	channel: EventChannel,
@@ -93,7 +94,7 @@ impl AppBar {
 
 pub mod prelude {
 	pub use crate::{
-		app_bar::{set_font, RedrawReason},
+		app_bar::RedrawReason,
 		components::Component,
 		event::{Event, EventSender},
 		AppBar, DrawData,
@@ -104,5 +105,5 @@ pub mod prelude {
 pub struct DrawData {
 	pub display: &'static Display,
 	pub bg_color: &'static i32,
-	pub font: &'static i32,
+	pub font: &'static Font,
 }

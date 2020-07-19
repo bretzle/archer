@@ -3,18 +3,17 @@ use crate::{
 	INSTANCE,
 };
 use log::{debug, info};
-use std::{ffi::CString, ptr, thread, time::Duration};
+use std::{ptr, thread, time::Duration};
 use winapi::{
-	ctypes::c_void,
 	shared::{
 		minwindef::{DWORD, HINSTANCE, LPARAM, LRESULT, UINT, WPARAM},
 		ntdef::LONG,
-		windef::{HBRUSH, HDC, HWINEVENTHOOK, HWND},
-		windowsx::GET_X_LPARAM,
+		windef::{HBRUSH, HWINEVENTHOOK, HWND},
+		windowsx::{GET_X_LPARAM, GET_Y_LPARAM},
 	},
 	um::{
 		libloaderapi::GetModuleHandleA,
-		wingdi::{CreateFontIndirectA, CreateSolidBrush, SelectObject, LOGFONTA},
+		wingdi::CreateSolidBrush,
 		winuser::{
 			BeginPaint, CreateWindowExA, DefWindowProcA, DispatchMessageW, EndPaint, GetClientRect,
 			GetMessageW, LoadCursorA, PeekMessageW, RegisterClassA, SendMessageA, SetCursor,
@@ -24,7 +23,7 @@ use winapi::{
 		},
 	},
 };
-use winsapi::{DeviceContext, PtrExt};
+use winsapi::{DeviceContext, Font, PtrExt};
 
 pub type RedrawReason = String;
 
@@ -41,10 +40,12 @@ unsafe extern "system" fn window_cb(
 		SetCursor(LoadCursorA(ptr::null_mut(), IDC_ARROW as *const i8));
 	} else if msg == WM_LBUTTONDOWN {
 		let x = GET_X_LPARAM(l_param);
-		info!("Received mouse click @ {}", x);
+		let y = GET_Y_LPARAM(l_param);
+		info!("Received click @ ({}, {})", x, y);
 	} else if msg == WM_CREATE {
 		info!("loading font");
-		load_font();
+		let app = INSTANCE.get_mut().unwrap();
+		app.font = Font::create(app.config.font_name, app.config.font_size).unwrap();
 	} else if !hwnd.is_null() && msg == WM_PAINT {
 		let reason = &INSTANCE.get().unwrap().redraw_reason;
 		debug!("Reason for paint was {:?}", reason);
@@ -108,40 +109,6 @@ pub fn redraw(reason: RedrawReason) {
 
 		//TODO: handle error
 		SendMessageA(hwnd, WM_PAINT, 0, 0);
-	}
-}
-
-pub fn set_font(dc: HDC) {
-	unsafe {
-		SelectObject(dc, INSTANCE.get().unwrap().font as *mut c_void);
-	}
-}
-
-pub fn load_font() {
-	unsafe {
-		let config = INSTANCE.get().unwrap().config;
-		let mut logfont = LOGFONTA::default();
-		let mut font_name: [i8; 32] = [0; 32];
-		let app_bar_font = config.font;
-		let app_bar_font_size = config.font_size;
-
-		for (i, byte) in CString::new(app_bar_font)
-			.unwrap()
-			.as_bytes()
-			.iter()
-			.enumerate()
-		{
-			font_name[i] = *byte as i8;
-		}
-
-		logfont.lfHeight = app_bar_font_size;
-		logfont.lfFaceName = font_name;
-
-		let font = CreateFontIndirectA(&logfont) as i32;
-
-		debug!("Using font {}", font);
-
-		INSTANCE.get_mut().unwrap().font = font;
 	}
 }
 
@@ -255,7 +222,6 @@ pub fn create() {
 	});
 }
 
-#[allow(dead_code)]
 pub fn hide() {
 	unsafe {
 		let hwnd = INSTANCE.get().unwrap().window.unwrap() as HWND; // Need to eager evaluate else there is a deadlock
