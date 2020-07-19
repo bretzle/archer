@@ -1,4 +1,4 @@
-use crate::{app_bar::RedrawReason, util::WinApiError, event::EventSender};
+use crate::{app_bar::RedrawReason, event::EventSender, util::WinApiError};
 use std::fmt::Debug;
 use winapi::shared::windef::HWND;
 
