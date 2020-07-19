@@ -1,6 +1,6 @@
-use crate::{app_bar::RedrawReason, util::WinApiError, DrawData};
+use crate::{app_bar::RedrawReason, DrawData};
 use std::{fmt::Debug, time::Duration};
-use winapi::shared::windef::HWND;
+use winsapi::{DeviceContext, WinApiResult};
 
 mod clock;
 mod date;
@@ -8,8 +8,11 @@ mod date;
 pub use clock::Clock;
 pub use date::Date;
 
+#[allow(unused_variables, unused_mut)]
 pub trait Component: Debug + Send + Sync {
 	fn interval(&self) -> Duration;
-	fn draw(&self, hwnd: HWND, data: &DrawData) -> Result<(), WinApiError>;
+	fn draw(&self, data: &DrawData, mut dc: DeviceContext) -> WinApiResult<()> {
+		panic!("No Draw implementation")
+	}
 	fn reason(&self) -> RedrawReason;
 }

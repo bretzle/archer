@@ -1,16 +1,7 @@
-use crate::{
-	app_bar::{set_font, RedrawReason},
-	util::*,
-	Component, DrawData,
-};
-use std::{ffi::CString, time::Duration};
-use winapi::{
-	shared::windef::{HWND, RECT, SIZE},
-	um::{
-		wingdi::{GetTextExtentPoint32A, SetBkColor, SetTextColor},
-		winuser::{DrawTextA, GetClientRect, GetDC, DT_CENTER, DT_SINGLELINE, DT_VCENTER},
-	},
-};
+use crate::{app_bar::RedrawReason, Component, DrawData};
+use std::time::Duration;
+use winapi::um::winuser::{DT_CENTER, DT_SINGLELINE, DT_VCENTER};
+use winsapi::*;
 
 #[derive(Debug, Default)]
 pub struct Date {}
@@ -20,42 +11,19 @@ impl Component for Date {
 		Duration::from_millis(5000)
 	}
 
-	fn draw(&self, hwnd: HWND, data: &DrawData) -> Result<(), WinApiError> {
-		let mut rect = RECT::default();
+	fn draw(&self, data: &DrawData, mut dc: DeviceContext) -> WinApiResult<()> {
+		let text = format!("{}", chrono::Local::now().format("%e %b %Y"));
 
-		unsafe {
-			GetClientRect(hwnd, &mut rect).as_result()?;
+		dc.set_font(*data.font);
+		dc.set_text_color(0x00ffffff);
+		dc.set_background_color(*data.bg_color as u32);
 
-			// Getting the device context
-			let hdc = GetDC(hwnd).as_result()?;
+		let size = dc.get_text_extent(text.clone())?;
 
-			set_font(hdc);
+		dc.rect.right -= 10;
+		dc.rect.left = dc.rect.right - size.cx;
 
-			let mut size = SIZE::default();
-
-			//TODO: handle error
-			SetTextColor(hdc, 0x00ffffff);
-			SetBkColor(hdc, *data.bg_color as u32);
-
-			let text = format!("{}", chrono::Local::now().format("%e %b %Y"));
-			let text_len = text.len() as i32;
-			let c_text = CString::new(text).unwrap();
-
-			GetTextExtentPoint32A(hdc, c_text.as_ptr(), text_len, &mut size).as_result()?;
-
-			rect.right = data.display.width - 10;
-			rect.left = rect.right - size.cx;
-
-			// Writing the date
-			DrawTextA(
-				hdc,
-				c_text.as_ptr(),
-				text_len,
-				&mut rect,
-				DT_CENTER | DT_VCENTER | DT_SINGLELINE,
-			)
-			.as_result()?;
-		}
+		dc.draw_text(text, DT_CENTER | DT_VCENTER | DT_SINGLELINE)?;
 
 		Ok(())
 	}

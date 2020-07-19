@@ -1,6 +1,5 @@
 use crate::{
 	event::{Event, WinEvent},
-	util::PtrExt,
 	INSTANCE,
 };
 use log::{debug, info};
@@ -25,6 +24,7 @@ use winapi::{
 		},
 	},
 };
+use winsapi::{DeviceContext, PtrExt};
 
 pub type RedrawReason = String;
 
@@ -59,7 +59,10 @@ unsafe extern "system" fn window_cb(
 
 		if let Some(component) = components.get(reason) {
 			component
-				.draw(hwnd, app.draw_data.as_ref().unwrap())
+				.draw(
+					app.draw_data.as_ref().unwrap(),
+					DeviceContext::new(hwnd).unwrap(),
+				)
 				.unwrap_or_else(|_| panic!("Failed to draw component: {:?}", component));
 		}
 
@@ -213,7 +216,7 @@ pub fn create() {
 
 		for component in app.components.values() {
 			component
-				.draw(hwnd, draw_data)
+				.draw(draw_data, DeviceContext::new(hwnd).unwrap())
 				.expect("Failed to draw datetime")
 		}
 
