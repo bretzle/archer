@@ -1,10 +1,9 @@
 use crate::{
 	app_bar::{set_font, RedrawReason},
-	event::{Event, EventSender},
 	util::*,
 	Component, INSTANCE,
 };
-use std::{ffi::CString, thread};
+use std::{ffi::CString, time::Duration};
 use winapi::{
 	shared::windef::{HWND, RECT, SIZE},
 	um::{
@@ -17,16 +16,10 @@ use winapi::{
 pub struct Clock {}
 
 impl Component for Clock {
-	fn setup(&self, window: &'static i32, channel: EventSender) {
-		thread::spawn(move || loop {
-			thread::sleep(std::time::Duration::from_millis(950));
-			if *window == 0 {
-				break;
-			}
-			channel
-				.send(Event::RedrawAppBar("Time".to_owned()))
-				.expect("Failed to send redraw-app-bar event");
-		});
+	fn setup(&self) {}
+
+	fn interval(&self) -> Duration {
+		Duration::from_millis(950)
 	}
 
 	fn draw(&self, hwnd: HWND) -> Result<(), WinApiError> {

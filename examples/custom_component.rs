@@ -1,5 +1,5 @@
 use appbar::prelude::*;
-use std::{thread, time::Duration, ffi::CString};
+use std::{ffi::CString, thread, time::Duration};
 use winapi::{
 	shared::windef::{HWND, RECT, SIZE},
 	um::{
@@ -24,16 +24,10 @@ fn main() {
 struct Custom {}
 
 impl Component for Custom {
-	fn setup(&self, window: &'static i32, channel: EventSender) {
-		thread::spawn(move || loop {
-			thread::sleep(Duration::from_millis(950));
-			if *window == 0 {
-				break;
-			}
-			channel
-				.send(Event::RedrawAppBar("Custom".to_owned()))
-				.expect("Failed to send redraw event");
-		});
+	fn setup(&self) {}
+
+	fn interval(&self) -> Duration {
+		Duration::from_millis(950)
 	}
 
 	fn draw(&self, hwnd: HWND) -> Result<(), WinApiError> {

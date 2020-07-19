@@ -46,7 +46,7 @@ unsafe extern "system" fn window_cb(
 	l_param: LPARAM,
 ) -> LRESULT {
 	if msg == WM_CLOSE {
-		INSTANCE.get_mut().unwrap().window = 0;
+		INSTANCE.get_mut().unwrap().window = None;
 	} else if msg == WM_SETCURSOR {
 		// Force a normal cursor. This probably shouldn't be done this way but whatever
 		SetCursor(LoadCursorA(ptr::null_mut(), IDC_ARROW as *const i8));
@@ -94,7 +94,7 @@ unsafe extern "system" fn handler(
 
 	let app = INSTANCE.get().unwrap();
 
-	if app.window == window_handle as i32 {
+	if app.window.unwrap() == window_handle as i32 {
 		return;
 	}
 
@@ -105,7 +105,7 @@ unsafe extern "system" fn handler(
 
 pub fn redraw(reason: RedrawReason) {
 	unsafe {
-		let hwnd = INSTANCE.get().unwrap().window as HWND;
+		let hwnd = INSTANCE.get().unwrap().window.unwrap() as HWND;
 
 		if hwnd == 0 as HWND {
 			return;
@@ -164,10 +164,21 @@ pub fn create() {
 	let window = &app.window;
 	let channel = &app.channel.sender;
 
-	for component in app.components.values() {
+	app.components.values().for_each(|component| {
 		info!("Setting up component: {:?}", component);
-		component.setup(window, channel.clone());
-	}
+
+		component.setup();
+
+		thread::spawn(move || loop {
+			thread::sleep(component.interval());
+			if window.is_none() {
+				break;
+			}
+			channel
+				.send(Event::RedrawAppBar(component.reason()))
+				.expect("Failed to send redraw event");
+		});
+	});
 
 	thread::spawn(move || unsafe {
 		//TODO: Handle error
@@ -201,7 +212,7 @@ pub fn create() {
 			ptr::null_mut(),
 		);
 
-		INSTANCE.get_mut().unwrap().window = window_handle as i32;
+		INSTANCE.get_mut().unwrap().window = Some(window_handle as i32);
 
 		let hwnd = show();
 
@@ -247,14 +258,14 @@ pub fn create() {
 #[allow(dead_code)]
 pub fn hide() {
 	unsafe {
-		let hwnd = INSTANCE.get().unwrap().window as HWND; // Need to eager evaluate else there is a deadlock
+		let hwnd = INSTANCE.get().unwrap().window.unwrap() as HWND; // Need to eager evaluate else there is a deadlock
 		ShowWindow(hwnd, SW_HIDE);
 	}
 }
 
 pub fn show() -> HWND {
 	unsafe {
-		let hwnd = INSTANCE.get().unwrap().window as HWND; // Need to eager evaluate else there is a deadlock
+		let hwnd = INSTANCE.get().unwrap().window.unwrap() as HWND; // Need to eager evaluate else there is a deadlock
 		ShowWindow(hwnd, SW_SHOW);
 		hwnd
 	}

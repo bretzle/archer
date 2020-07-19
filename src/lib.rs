@@ -20,7 +20,7 @@ static mut INSTANCE: OnceCell<AppBar> = OnceCell::new();
 pub struct AppBar {
 	display: Display,
 	config: Config,
-	window: i32,
+	window: Option<i32>,
 	font: i32,
 	redraw_reason: RedrawReason,
 	components: HashMap<RedrawReason, Box<dyn Component>>,
@@ -83,12 +83,13 @@ impl AppBar {
 }
 
 pub mod prelude {
-	pub use crate::app_bar::{set_font, RedrawReason};
-	pub use crate::components::Component;
-	pub use crate::event::Event;
-	pub use crate::event::EventSender;
-	pub use crate::util::{CTypeExt, PtrExt, WinApiError};
-	pub use crate::AppBar;
+	pub use crate::{
+		app_bar::{set_font, RedrawReason},
+		components::Component,
+		event::{Event, EventSender},
+		util::{CTypeExt, PtrExt, WinApiError},
+		AppBar,
+	};
 
 	pub use winapi::shared::windef::HWND;
 }
