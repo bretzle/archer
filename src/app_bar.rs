@@ -6,6 +6,7 @@ use crate::{
 use log::{debug, info};
 use std::{ffi::CString, ptr, thread, time::Duration};
 use winapi::{
+	ctypes::c_void,
 	shared::{
 		minwindef::{DWORD, HINSTANCE, LPARAM, LRESULT, UINT, WPARAM},
 		ntdef::LONG,
@@ -119,7 +120,7 @@ pub fn redraw(reason: RedrawReason) {
 
 pub fn set_font(dc: HDC) {
 	unsafe {
-		SelectObject(dc, INSTANCE.get().unwrap().font as *mut std::ffi::c_void);
+		SelectObject(dc, INSTANCE.get().unwrap().font as *mut c_void);
 	}
 }
 
