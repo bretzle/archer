@@ -1,4 +1,5 @@
 use appbar::{components::Clock, AppBar};
+use std::{thread, time::Duration};
 
 fn main() {
 	simple_logger::init().unwrap();
@@ -7,5 +8,7 @@ fn main() {
 
 	bar.start();
 
-	loop {}
+	loop {
+		thread::sleep(Duration::from_millis(1000));
+	}
 }
