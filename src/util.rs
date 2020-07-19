@@ -1,5 +1,8 @@
-use std::marker::Sized;
-use thiserror::Error;
+use std::{
+	error::Error,
+	fmt::{self, Display},
+	marker::Sized,
+};
 use winapi::{
 	shared::windef::RECT,
 	um::winuser::{GetDesktopWindow, GetForegroundWindow, GetWindowRect},
@@ -7,13 +10,23 @@ use winapi::{
 
 pub type WinApiResult<T> = Result<T, WinApiError>;
 
-#[allow(dead_code)]
-#[derive(Debug, Error)]
+#[derive(Debug)]
 pub enum WinApiError {
-	#[error("Windows Api errored and returned a value of {0}")]
 	Err(i32),
-	#[error("Windows Api errored and returned a null value")]
 	Null,
+}
+
+impl Error for WinApiError {}
+
+impl Display for WinApiError {
+	fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+		match *self {
+			WinApiError::Err(num) => {
+				write!(f, "Windows Api errored and returned a value of {}", num)
+			}
+			WinApiError::Null => write!(f, "Windows Api errored and returned a null value"),
+		}
+	}
 }
 
 pub trait CTypeExt {

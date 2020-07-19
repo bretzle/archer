@@ -8,7 +8,6 @@ edition = "2018"
 log = "0.4"
 chrono = "0.4"
 crossbeam-channel = "0.4"
-thiserror = "1.0"
 once_cell = "1.4.0"
 
 [dependencies.winapi]

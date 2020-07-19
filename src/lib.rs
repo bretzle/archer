@@ -41,7 +41,13 @@ impl AppBar {
 	}
 
 	pub fn with_component(&'static mut self, component: Box<dyn Component>) -> &'static mut Self {
-		self.components.insert(component.reason(), component);
+		if self
+			.components
+			.insert(component.reason(), component)
+			.is_some()
+		{
+			panic!("Two components can not have the same reason");
+		}
 		self
 	}
 
@@ -77,7 +83,7 @@ impl AppBar {
 }
 
 pub mod prelude {
-	pub use crate::app_bar::{RedrawReason, set_font};
+	pub use crate::app_bar::{set_font, RedrawReason};
 	pub use crate::components::Component;
 	pub use crate::event::Event;
 	pub use crate::event::EventSender;
