@@ -1,4 +1,4 @@
-use crate::app_bar::RedrawAppBarReason;
+use crate::app_bar::RedrawReason;
 use crossbeam_channel::{unbounded, Receiver, Sender};
 use winapi::um::winuser::{
 	EVENT_OBJECT_DESTROY, EVENT_OBJECT_HIDE, EVENT_OBJECT_SHOW, EVENT_SYSTEM_FOREGROUND,
@@ -6,7 +6,7 @@ use winapi::um::winuser::{
 
 #[derive(Debug)]
 pub enum Event {
-	RedrawAppBar(RedrawAppBarReason),
+	RedrawAppBar(RedrawReason),
 	WinEvent(WinEvent),
 	__Nonexhaustive,
 }

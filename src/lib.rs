@@ -1,4 +1,4 @@
-use app_bar::RedrawAppBarReason;
+use app_bar::RedrawReason;
 use components::Component;
 use config::Config;
 use crossbeam_channel::{select, SendError};
@@ -23,8 +23,8 @@ pub struct AppBar {
 	config: Config,
 	window: i32,
 	font: i32,
-	redraw_reason: RedrawAppBarReason,
-	components: HashMap<RedrawAppBarReason, Box<dyn Component>>,
+	redraw_reason: RedrawReason,
+	components: HashMap<RedrawReason, Box<dyn Component>>,
 }
 
 impl AppBar {

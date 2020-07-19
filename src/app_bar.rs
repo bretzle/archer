@@ -26,13 +26,13 @@ use winapi::{
 };
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Hash)]
-pub enum RedrawAppBarReason {
+pub enum RedrawReason {
 	Time,
 }
 
-impl Default for RedrawAppBarReason {
+impl Default for RedrawReason {
 	fn default() -> Self {
-		RedrawAppBarReason::Time
+		RedrawReason::Time
 	}
 }
 
@@ -99,7 +99,7 @@ unsafe extern "system" fn handler(
 	}
 }
 
-pub fn redraw(reason: RedrawAppBarReason) {
+pub fn redraw(reason: RedrawReason) {
 	unsafe {
 		let hwnd = AppBar::get().window as HWND;
 

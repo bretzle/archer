@@ -1,5 +1,5 @@
 use crate::{
-	app_bar::{set_font, RedrawAppBarReason},
+	app_bar::{set_font, RedrawReason},
 	event::Event,
 	util::*,
 	AppBar, Component, INSTANCE,
@@ -24,7 +24,7 @@ impl Component for Clock {
 			if AppBar::get().window == 0 {
 				break;
 			}
-			AppBar::send_message(Event::RedrawAppBar(RedrawAppBarReason::Time))
+			AppBar::send_message(Event::RedrawAppBar(RedrawReason::Time))
 				.expect("Failed to send redraw-app-bar event");
 		});
 	}
@@ -95,7 +95,7 @@ impl Component for Clock {
 		Ok(())
 	}
 
-	fn reason(&self) -> RedrawAppBarReason {
-		RedrawAppBarReason::Time
+	fn reason(&self) -> RedrawReason {
+		RedrawReason::Time
 	}
 }
