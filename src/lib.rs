@@ -1,7 +1,7 @@
 use app_bar::RedrawReason;
 use components::Component;
 use config::Config;
-use crossbeam_channel::{select, SendError};
+use crossbeam_channel::select;
 use display::Display;
 use event::{Event, EventChannel};
 use once_cell::sync::OnceCell;
@@ -72,19 +72,7 @@ impl AppBar {
 		self
 	}
 
-	pub(crate) fn config() -> Config {
-		unsafe { INSTANCE.get().unwrap().config }
-	}
-
-	pub(crate) fn get() -> &'static Self {
-		unsafe { INSTANCE.get_unchecked() }
-	}
-
-	pub(crate) fn get_mut() -> &'static mut Self {
+	pub(crate) fn get() -> &'static mut Self {
 		unsafe { INSTANCE.get_mut().unwrap() }
-	}
-
-	pub(crate) fn send_message(msg: Event) -> Result<(), SendError<Event>> {
-		CHANNEL.get().unwrap().sender.send(msg)
 	}
 }

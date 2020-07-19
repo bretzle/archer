@@ -1,7 +1,7 @@
 use crate::{
 	event::{Event, WinEvent},
 	util::PtrExt,
-	AppBar,
+	AppBar, CHANNEL,
 };
 use log::{debug, info};
 use std::{ffi::CString, ptr, thread, time::Duration};
@@ -43,7 +43,7 @@ unsafe extern "system" fn window_cb(
 	l_param: LPARAM,
 ) -> LRESULT {
 	if msg == WM_CLOSE {
-		AppBar::get_mut().window = 0;
+		AppBar::get().window = 0;
 	} else if msg == WM_SETCURSOR {
 		// Force a normal cursor. This probably shouldn't be done this way but whatever
 		SetCursor(LoadCursorA(ptr::null_mut(), IDC_ARROW as *const i8));
@@ -95,7 +95,7 @@ unsafe extern "system" fn handler(
 	}
 
 	if let Some(event) = WinEvent::from_code(event_code, window_handle as i32) {
-		AppBar::send_message(Event::WinEvent(event)).unwrap();
+		CHANNEL.get().unwrap().sender.send(Event::WinEvent(event)).unwrap();
 	}
 }
 
@@ -107,7 +107,7 @@ pub fn redraw(reason: RedrawReason) {
 			return;
 		}
 
-		AppBar::get_mut().redraw_reason = reason;
+		AppBar::get().redraw_reason = reason;
 
 		//TODO: handle error
 		SendMessageA(hwnd, WM_PAINT, 0, 0);
@@ -122,7 +122,7 @@ pub fn set_font(dc: HDC) {
 
 pub fn load_font() {
 	unsafe {
-		let config = AppBar::config();
+		let config = AppBar::get().config;
 		let mut logfont = LOGFONTA::default();
 		let mut font_name: [i8; 32] = [0; 32];
 		let app_bar_font = config.font;
@@ -144,7 +144,7 @@ pub fn load_font() {
 
 		debug!("Using font {}", font);
 
-		AppBar::get_mut().font = font;
+		AppBar::get().font = font;
 	}
 }
 
@@ -157,9 +157,12 @@ pub fn create() {
 	let height = config.height;
 	let display_width = AppBar::get().display.width;
 
+	let window = &app.window;
+	let channel = &CHANNEL.get().unwrap().sender;
+
 	for component in app.components.values() {
 		info!("Setting up component: {:?}", component);
-		component.setup();
+		component.setup(window, channel.clone());
 	}
 
 	thread::spawn(move || unsafe {
@@ -194,7 +197,7 @@ pub fn create() {
 			ptr::null_mut(),
 		);
 
-		AppBar::get_mut().window = window_handle as i32;
+		AppBar::get().window = window_handle as i32;
 
 		let hwnd = show();
 

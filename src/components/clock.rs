@@ -1,10 +1,9 @@
 use crate::{
 	app_bar::{set_font, RedrawReason},
-	event::Event,
+	event::{Event, EventSender},
 	util::*,
 	AppBar, Component, INSTANCE,
 };
-use log::debug;
 use std::{ffi::CString, thread};
 use winapi::{
 	shared::windef::{HWND, RECT, SIZE},
@@ -18,78 +17,73 @@ use winapi::{
 pub struct Clock {}
 
 impl Component for Clock {
-	fn setup(&self) {
-		thread::spawn(|| loop {
+	fn setup(&self, window: &'static i32, channel: EventSender) {
+		thread::spawn(move || loop {
 			thread::sleep(std::time::Duration::from_millis(950));
-			if AppBar::get().window == 0 {
+			if *window == 0 {
 				break;
 			}
-			AppBar::send_message(Event::RedrawAppBar(RedrawReason::Time))
+			channel
+				.send(Event::RedrawAppBar(RedrawReason::Time))
 				.expect("Failed to send redraw-app-bar event");
 		});
 	}
 
 	fn draw(&self, hwnd: HWND) -> Result<(), WinApiError> {
-		if !hwnd.is_null() {
-			let mut rect = RECT::default();
+		let mut rect = RECT::default();
 
-			unsafe {
-				debug!("Getting the rect for the appbar");
-				GetClientRect(hwnd, &mut rect).as_result()?;
-				let text = format!("{}", chrono::Local::now().format("%T"));
-				let text_len = text.len() as i32;
-				let c_text = CString::new(text).unwrap();
-				let display = INSTANCE.get().unwrap().display;
-				let config = AppBar::config();
+		unsafe {
+			GetClientRect(hwnd, &mut rect).as_result()?;
+			let text = format!("{}", chrono::Local::now().format("%T"));
+			let text_len = text.len() as i32;
+			let c_text = CString::new(text).unwrap();
+			let display = INSTANCE.get().unwrap().display;
+			let config = AppBar::get().config;
 
-				debug!("Getting the device context");
-				let hdc = GetDC(hwnd).as_result()?;
+			// Getting the device context
+			let hdc = GetDC(hwnd).as_result()?;
 
-				set_font(hdc);
+			set_font(hdc);
 
-				let mut size = SIZE::default();
+			let mut size = SIZE::default();
 
-				GetTextExtentPoint32A(hdc, c_text.as_ptr(), text_len, &mut size).as_result()?;
+			GetTextExtentPoint32A(hdc, c_text.as_ptr(), text_len, &mut size).as_result()?;
 
-				rect.left = display.width / 2 - (size.cx / 2) - 10;
-				rect.right = display.width / 2 + (size.cx / 2) + 10;
+			rect.left = display.width / 2 - (size.cx / 2) - 10;
+			rect.right = display.width / 2 + (size.cx / 2) + 10;
 
-				debug!("Setting the text color");
-				//TODO: handle error
-				SetTextColor(hdc, 0x00ffffff);
+			//TODO: handle error
+			SetTextColor(hdc, 0x00ffffff);
+			SetBkColor(hdc, config.bg_color as u32);
 
-				debug!("Setting the background color");
-				SetBkColor(hdc, config.bg_color as u32);
+			// Writing the time
+			DrawTextA(
+				hdc,
+				c_text.as_ptr(),
+				text_len,
+				&mut rect,
+				DT_CENTER | DT_VCENTER | DT_SINGLELINE,
+			)
+			.as_result()?;
 
-				debug!("Writing the time");
-				DrawTextA(
-					hdc,
-					c_text.as_ptr(),
-					text_len,
-					&mut rect,
-					DT_CENTER | DT_VCENTER | DT_SINGLELINE,
-				)
-				.as_result()?;
+			let text = format!("{}", chrono::Local::now().format("%e %b %Y"));
+			let text_len = text.len() as i32;
+			let c_text = CString::new(text).unwrap();
 
-				let text = format!("{}", chrono::Local::now().format("%e %b %Y"));
-				let text_len = text.len() as i32;
-				let c_text = CString::new(text).unwrap();
+			GetTextExtentPoint32A(hdc, c_text.as_ptr(), text_len, &mut size).as_result()?;
 
-				GetTextExtentPoint32A(hdc, c_text.as_ptr(), text_len, &mut size).as_result()?;
+			rect.right = display.width - 10;
+			rect.left = rect.right - size.cx;
 
-				rect.right = display.width - 10;
-				rect.left = rect.right - size.cx;
-
-				debug!("Writing the date");
-				DrawTextA(
-					hdc,
-					c_text.as_ptr(),
-					text_len,
-					&mut rect,
-					DT_CENTER | DT_VCENTER | DT_SINGLELINE,
-				)
-				.as_result()?;
-			}
+			// Writing the date
+			DrawTextA(
+				hdc,
+				c_text.as_ptr(),
+				text_len,
+				&mut rect,
+				DT_CENTER | DT_VCENTER | DT_SINGLELINE,
+			)
+			.as_result()?;
 		}
 
 		Ok(())
