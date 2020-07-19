@@ -24,13 +24,11 @@ fn main() {
 struct Custom {}
 
 impl Component for Custom {
-	fn setup(&self) {}
-
 	fn interval(&self) -> Duration {
 		Duration::from_millis(950)
 	}
 
-	fn draw(&self, hwnd: HWND) -> Result<(), WinApiError> {
+	fn draw(&self, hwnd: HWND, data: &DrawData) -> Result<(), WinApiError> {
 		let mut rect = RECT::default();
 
 		unsafe {
@@ -48,12 +46,12 @@ impl Component for Custom {
 
 			GetTextExtentPoint32A(hdc, c_text.as_ptr(), text_len, &mut size).as_result()?;
 
-			rect.left = 1920 / 2 - (size.cx / 2) - 10;
-			rect.right = 1920 / 2 + (size.cx / 2) + 10;
+			rect.left = data.display.width / 2 - (size.cx / 2) - 10;
+			rect.right = data.display.width / 2 + (size.cx / 2) + 10;
 
 			//TODO: handle error
 			SetTextColor(hdc, 0x00ffffff);
-			SetBkColor(hdc, 0x2C2427);
+			SetBkColor(hdc, *data.bg_color as u32);
 
 			// Writing the time
 			DrawTextA(

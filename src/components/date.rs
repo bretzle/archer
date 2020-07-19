@@ -1,7 +1,7 @@
 use crate::{
 	app_bar::{set_font, RedrawReason},
 	util::*,
-	Component, INSTANCE,
+	Component, DrawData,
 };
 use std::{ffi::CString, time::Duration};
 use winapi::{
@@ -16,19 +16,15 @@ use winapi::{
 pub struct Date {}
 
 impl Component for Date {
-	fn setup(&self) {}
-
 	fn interval(&self) -> Duration {
 		Duration::from_millis(5000)
 	}
 
-	fn draw(&self, hwnd: HWND) -> Result<(), WinApiError> {
+	fn draw(&self, hwnd: HWND, data: &DrawData) -> Result<(), WinApiError> {
 		let mut rect = RECT::default();
 
 		unsafe {
 			GetClientRect(hwnd, &mut rect).as_result()?;
-			let display = INSTANCE.get().unwrap().display;
-			let config = INSTANCE.get().unwrap().config;
 
 			// Getting the device context
 			let hdc = GetDC(hwnd).as_result()?;
@@ -39,7 +35,7 @@ impl Component for Date {
 
 			//TODO: handle error
 			SetTextColor(hdc, 0x00ffffff);
-			SetBkColor(hdc, config.bg_color as u32);
+			SetBkColor(hdc, *data.bg_color as u32);
 
 			let text = format!("{}", chrono::Local::now().format("%e %b %Y"));
 			let text_len = text.len() as i32;
@@ -47,7 +43,7 @@ impl Component for Date {
 
 			GetTextExtentPoint32A(hdc, c_text.as_ptr(), text_len, &mut size).as_result()?;
 
-			rect.right = display.width - 10;
+			rect.right = data.display.width - 10;
 			rect.left = rect.right - size.cx;
 
 			// Writing the date

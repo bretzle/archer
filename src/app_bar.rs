@@ -26,17 +26,6 @@ use winapi::{
 	},
 };
 
-// #[derive(Clone, Debug, Eq, PartialEq, Hash)]
-// pub enum RedrawReason {
-// 	Time,
-// }
-
-// impl Default for RedrawReason {
-// 	fn default() -> Self {
-// 		RedrawReason::Time
-// 	}
-// }
-
 pub type RedrawReason = String;
 
 unsafe extern "system" fn window_cb(
@@ -65,11 +54,12 @@ unsafe extern "system" fn window_cb(
 
 		BeginPaint(hwnd, &mut paint);
 
-		let components = &INSTANCE.get().unwrap().components;
+		let app = &INSTANCE.get().unwrap();
+		let components = &app.components;
 
 		if let Some(component) = components.get(reason) {
 			component
-				.draw(hwnd)
+				.draw(hwnd, app.draw_data.as_ref().unwrap())
 				.unwrap_or_else(|_| panic!("Failed to draw component: {:?}", component));
 		}
 
@@ -167,8 +157,6 @@ pub fn create() {
 	app.components.values().for_each(|component| {
 		info!("Setting up component: {:?}", component);
 
-		component.setup();
-
 		thread::spawn(move || loop {
 			thread::sleep(component.interval());
 			if window.is_none() {
@@ -212,12 +200,21 @@ pub fn create() {
 			ptr::null_mut(),
 		);
 
-		INSTANCE.get_mut().unwrap().window = Some(window_handle as i32);
+		let app = INSTANCE.get_mut().unwrap();
+
+		app.window = Some(window_handle as i32);
+		app.init_draw_data();
+
+		let app = INSTANCE.get().unwrap();
+
+		let draw_data = app.draw_data.as_ref().unwrap();
 
 		let hwnd = show();
 
 		for component in app.components.values() {
-			component.draw(hwnd).expect("Failed to draw datetime")
+			component
+				.draw(hwnd, draw_data)
+				.expect("Failed to draw datetime")
 		}
 
 		let mut msg: MSG = MSG::default();

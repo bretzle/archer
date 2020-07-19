@@ -6,6 +6,7 @@ use display::Display;
 use event::{Event, EventChannel};
 use once_cell::sync::OnceCell;
 use std::{collections::HashMap, fmt::Debug, thread};
+use winapi::shared::windef::HWND;
 
 mod app_bar;
 pub mod components;
@@ -25,6 +26,7 @@ pub struct AppBar {
 	redraw_reason: RedrawReason,
 	components: HashMap<RedrawReason, Box<dyn Component>>,
 	channel: EventChannel,
+	draw_data: Option<DrawData>,
 }
 
 impl AppBar {
@@ -80,6 +82,17 @@ impl AppBar {
 			_ => {}
 		}
 	}
+
+	pub fn hwnd(&self) -> Option<HWND> {
+		self.window.map(|id| id as HWND)
+	}
+
+	fn init_draw_data(&'static mut self) {
+		self.draw_data = Some(DrawData {
+			display: &self.display,
+			bg_color: &self.config.bg_color,
+		})
+	}
 }
 
 pub mod prelude {
@@ -88,8 +101,14 @@ pub mod prelude {
 		components::Component,
 		event::{Event, EventSender},
 		util::{CTypeExt, PtrExt, WinApiError},
-		AppBar,
+		AppBar, DrawData,
 	};
 
 	pub use winapi::shared::windef::HWND;
+}
+
+#[derive(Debug)]
+pub struct DrawData {
+	pub display: &'static Display,
+	pub bg_color: &'static i32,
 }

@@ -1,7 +1,7 @@
 use crate::{
 	app_bar::{set_font, RedrawReason},
 	util::*,
-	Component, INSTANCE,
+	Component, DrawData,
 };
 use std::{ffi::CString, time::Duration};
 use winapi::{
@@ -16,13 +16,11 @@ use winapi::{
 pub struct Clock {}
 
 impl Component for Clock {
-	fn setup(&self) {}
-
 	fn interval(&self) -> Duration {
 		Duration::from_millis(950)
 	}
 
-	fn draw(&self, hwnd: HWND) -> Result<(), WinApiError> {
+	fn draw(&self, hwnd: HWND, data: &DrawData) -> Result<(), WinApiError> {
 		let mut rect = RECT::default();
 
 		unsafe {
@@ -30,8 +28,6 @@ impl Component for Clock {
 			let text = format!("{}", chrono::Local::now().format("%T"));
 			let text_len = text.len() as i32;
 			let c_text = CString::new(text).unwrap();
-			let display = INSTANCE.get().unwrap().display;
-			let config = INSTANCE.get().unwrap().config;
 
 			// Getting the device context
 			let hdc = GetDC(hwnd).as_result()?;
@@ -42,12 +38,12 @@ impl Component for Clock {
 
 			GetTextExtentPoint32A(hdc, c_text.as_ptr(), text_len, &mut size).as_result()?;
 
-			rect.left = display.width / 2 - (size.cx / 2) - 10;
-			rect.right = display.width / 2 + (size.cx / 2) + 10;
+			rect.left = data.display.width / 2 - (size.cx / 2) - 10;
+			rect.right = data.display.width / 2 + (size.cx / 2) + 10;
 
 			//TODO: handle error
 			SetTextColor(hdc, 0x00ffffff);
-			SetBkColor(hdc, config.bg_color as u32);
+			SetBkColor(hdc, *data.bg_color as u32);
 
 			// Writing the time
 			DrawTextA(
