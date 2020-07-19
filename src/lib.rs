@@ -15,7 +15,6 @@ mod event;
 mod util;
 
 static mut INSTANCE: OnceCell<AppBar> = OnceCell::new();
-static CHANNEL: OnceCell<EventChannel> = OnceCell::new();
 
 #[derive(Debug, Default)]
 pub struct AppBar {
@@ -25,6 +24,7 @@ pub struct AppBar {
 	font: i32,
 	redraw_reason: RedrawReason,
 	components: HashMap<RedrawReason, Box<dyn Component>>,
+	channel: EventChannel,
 }
 
 impl AppBar {
@@ -40,39 +40,38 @@ impl AppBar {
 		}
 	}
 
-	pub fn start(&self) {
-		thread::spawn(|| {
-			let receiver = CHANNEL.get_or_init(EventChannel::default).receiver.clone();
+	pub fn with_component(&'static mut self, component: Box<dyn Component>) -> &'static mut Self {
+		self.components.insert(component.reason(), component);
+		self
+	}
+
+	pub fn start(&'static self) {
+		thread::spawn(move || {
+			let receiver = self.channel.receiver.clone();
 
 			app_bar::create();
 
 			loop {
 				select! {
 					recv(receiver) -> msg => {
-						let msg = msg.unwrap();
-						match msg {
-							Event::RedrawAppBar(reason) => app_bar::redraw(reason),
-							Event::WinEvent(_) => {
-								if util::is_fullscreen() {
-									app_bar::hide();
-								} else {
-									app_bar::show();
-								}
-							},
-							_ => {}
-						}
+						Self::handle_event(msg.unwrap());
 					}
 				}
 			}
 		});
 	}
 
-	pub fn with_component(&'static mut self, component: Box<dyn Component>) -> &'static mut Self {
-		self.components.insert(component.reason(), component);
-		self
-	}
-
-	pub(crate) fn get() -> &'static mut Self {
-		unsafe { INSTANCE.get_mut().unwrap() }
+	fn handle_event(msg: Event) {
+		match msg {
+			Event::RedrawAppBar(reason) => app_bar::redraw(reason),
+			Event::WinEvent(_) => {
+				if util::is_fullscreen() {
+					app_bar::hide();
+				} else {
+					app_bar::show();
+				}
+			}
+			_ => {}
+		}
 	}
 }

@@ -8,6 +8,8 @@ fn main() {
 
 	bar.start();
 
+	println!("{:?}", bar);
+
 	loop {
 		thread::sleep(Duration::from_millis(1000));
 	}

@@ -2,7 +2,7 @@ use crate::{
 	app_bar::{set_font, RedrawReason},
 	event::{Event, EventSender},
 	util::*,
-	AppBar, Component, INSTANCE,
+	Component, INSTANCE,
 };
 use std::{ffi::CString, thread};
 use winapi::{
@@ -24,7 +24,7 @@ impl Component for Clock {
 				break;
 			}
 			channel
-				.send(Event::RedrawAppBar(RedrawReason::Time))
+				.send(Event::RedrawAppBar("Time".to_owned()))
 				.expect("Failed to send redraw-app-bar event");
 		});
 	}
@@ -38,7 +38,7 @@ impl Component for Clock {
 			let text_len = text.len() as i32;
 			let c_text = CString::new(text).unwrap();
 			let display = INSTANCE.get().unwrap().display;
-			let config = AppBar::get().config;
+			let config = INSTANCE.get().unwrap().config;
 
 			// Getting the device context
 			let hdc = GetDC(hwnd).as_result()?;
@@ -90,6 +90,6 @@ impl Component for Clock {
 	}
 
 	fn reason(&self) -> RedrawReason {
-		RedrawReason::Time
+		"Time".to_owned()
 	}
 }

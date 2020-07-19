@@ -64,5 +64,5 @@ pub fn is_fullscreen() -> bool {
 		GetWindowRect(GetDesktopWindow(), &mut b);
 	}
 
-	return a.left == b.left && a.top == b.top && a.right == b.right && a.bottom == b.bottom;
+	a.left == b.left && a.top == b.top && a.right == b.right && a.bottom == b.bottom
 }

@@ -1,7 +1,7 @@
 use crate::{
 	event::{Event, WinEvent},
 	util::PtrExt,
-	AppBar, CHANNEL,
+	INSTANCE,
 };
 use log::{debug, info};
 use std::{ffi::CString, ptr, thread, time::Duration};
@@ -16,25 +16,27 @@ use winapi::{
 		libloaderapi::GetModuleHandleA,
 		wingdi::{CreateFontIndirectA, CreateSolidBrush, SelectObject, LOGFONTA},
 		winuser::{
-			BeginPaint, DefWindowProcA, DispatchMessageW, EndPaint, GetClientRect, GetMessageW,
-			LoadCursorA, PeekMessageW, RegisterClassA, SendMessageA, SetCursor, SetWinEventHook,
-			ShowWindow, TranslateMessage, EVENT_MAX, EVENT_MIN, IDC_ARROW, MSG, OBJID_WINDOW,
-			PAINTSTRUCT, PM_REMOVE, SW_HIDE, SW_SHOW, WM_CLOSE, WM_CREATE, WM_LBUTTONDOWN,
-			WM_PAINT, WM_SETCURSOR, WNDCLASSA,
+			BeginPaint, CreateWindowExA, DefWindowProcA, DispatchMessageW, EndPaint, GetClientRect,
+			GetMessageW, LoadCursorA, PeekMessageW, RegisterClassA, SendMessageA, SetCursor,
+			SetWinEventHook, ShowWindow, TranslateMessage, EVENT_MAX, EVENT_MIN, IDC_ARROW, MSG,
+			OBJID_WINDOW, PAINTSTRUCT, PM_REMOVE, SW_HIDE, SW_SHOW, WM_CLOSE, WM_CREATE,
+			WM_LBUTTONDOWN, WM_PAINT, WM_SETCURSOR, WNDCLASSA,
 		},
 	},
 };
 
-#[derive(Copy, Clone, Debug, Eq, PartialEq, Hash)]
-pub enum RedrawReason {
-	Time,
-}
+// #[derive(Clone, Debug, Eq, PartialEq, Hash)]
+// pub enum RedrawReason {
+// 	Time,
+// }
 
-impl Default for RedrawReason {
-	fn default() -> Self {
-		RedrawReason::Time
-	}
-}
+// impl Default for RedrawReason {
+// 	fn default() -> Self {
+// 		RedrawReason::Time
+// 	}
+// }
+
+pub type RedrawReason = String;
 
 unsafe extern "system" fn window_cb(
 	hwnd: HWND,
@@ -43,7 +45,7 @@ unsafe extern "system" fn window_cb(
 	l_param: LPARAM,
 ) -> LRESULT {
 	if msg == WM_CLOSE {
-		AppBar::get().window = 0;
+		INSTANCE.get_mut().unwrap().window = 0;
 	} else if msg == WM_SETCURSOR {
 		// Force a normal cursor. This probably shouldn't be done this way but whatever
 		SetCursor(LoadCursorA(ptr::null_mut(), IDC_ARROW as *const i8));
@@ -54,8 +56,7 @@ unsafe extern "system" fn window_cb(
 		info!("loading font");
 		load_font();
 	} else if !hwnd.is_null() && msg == WM_PAINT {
-		info!("Received paint");
-		let reason = AppBar::get().redraw_reason;
+		let reason = &INSTANCE.get().unwrap().redraw_reason;
 		debug!("Reason for paint was {:?}", reason);
 		let mut paint = PAINTSTRUCT::default();
 
@@ -63,9 +64,9 @@ unsafe extern "system" fn window_cb(
 
 		BeginPaint(hwnd, &mut paint);
 
-		let components = &AppBar::get().components;
+		let components = &INSTANCE.get().unwrap().components;
 
-		if let Some(component) = components.get(&reason) {
+		if let Some(component) = components.get(reason) {
 			component
 				.draw(hwnd)
 				.unwrap_or_else(|_| panic!("Failed to draw component: {:?}", component));
@@ -90,24 +91,26 @@ unsafe extern "system" fn handler(
 		return;
 	}
 
-	if AppBar::get().window == window_handle as i32 {
+	let app = INSTANCE.get().unwrap();
+
+	if app.window == window_handle as i32 {
 		return;
 	}
 
 	if let Some(event) = WinEvent::from_code(event_code, window_handle as i32) {
-		CHANNEL.get().unwrap().sender.send(Event::WinEvent(event)).unwrap();
+		app.channel.sender.send(Event::WinEvent(event)).unwrap();
 	}
 }
 
 pub fn redraw(reason: RedrawReason) {
 	unsafe {
-		let hwnd = AppBar::get().window as HWND;
+		let hwnd = INSTANCE.get().unwrap().window as HWND;
 
 		if hwnd == 0 as HWND {
 			return;
 		}
 
-		AppBar::get().redraw_reason = reason;
+		INSTANCE.get_mut().unwrap().redraw_reason = reason;
 
 		//TODO: handle error
 		SendMessageA(hwnd, WM_PAINT, 0, 0);
@@ -116,13 +119,13 @@ pub fn redraw(reason: RedrawReason) {
 
 pub fn set_font(dc: HDC) {
 	unsafe {
-		SelectObject(dc, AppBar::get().font as *mut std::ffi::c_void);
+		SelectObject(dc, INSTANCE.get().unwrap().font as *mut std::ffi::c_void);
 	}
 }
 
 pub fn load_font() {
 	unsafe {
-		let config = AppBar::get().config;
+		let config = INSTANCE.get().unwrap().config;
 		let mut logfont = LOGFONTA::default();
 		let mut font_name: [i8; 32] = [0; 32];
 		let app_bar_font = config.font;
@@ -144,21 +147,21 @@ pub fn load_font() {
 
 		debug!("Using font {}", font);
 
-		AppBar::get().font = font;
+		INSTANCE.get_mut().unwrap().font = font;
 	}
 }
 
 pub fn create() {
 	info!("Creating appbar");
 	let name = "app_bar";
-	let app = AppBar::get();
+	let app = unsafe { INSTANCE.get().unwrap() };
 	let config = app.config;
 
 	let height = config.height;
-	let display_width = AppBar::get().display.width;
+	let display_width = app.display.width;
 
 	let window = &app.window;
-	let channel = &CHANNEL.get().unwrap().sender;
+	let channel = &app.channel.sender;
 
 	for component in app.components.values() {
 		info!("Setting up component: {:?}", component);
@@ -182,7 +185,7 @@ pub fn create() {
 		RegisterClassA(&class);
 
 		//TODO: handle error
-		let window_handle = winapi::um::winuser::CreateWindowExA(
+		let window_handle = CreateWindowExA(
 			winapi::um::winuser::WS_EX_NOACTIVATE | winapi::um::winuser::WS_EX_TOPMOST,
 			name.as_ptr() as *const i8,
 			name.as_ptr() as *const i8,
@@ -197,11 +200,11 @@ pub fn create() {
 			ptr::null_mut(),
 		);
 
-		AppBar::get().window = window_handle as i32;
+		INSTANCE.get_mut().unwrap().window = window_handle as i32;
 
 		let hwnd = show();
 
-		for component in AppBar::get().components.values() {
+		for component in app.components.values() {
 			component.draw(hwnd).expect("Failed to draw datetime")
 		}
 
@@ -243,17 +246,15 @@ pub fn create() {
 #[allow(dead_code)]
 pub fn hide() {
 	unsafe {
-		let hwnd = AppBar::get().window as HWND; // Need to eager evaluate else there is a deadlock
+		let hwnd = INSTANCE.get().unwrap().window as HWND; // Need to eager evaluate else there is a deadlock
 		ShowWindow(hwnd, SW_HIDE);
 	}
 }
 
 pub fn show() -> HWND {
-	let hwnd = AppBar::get().window as HWND; // Need to eager evaluate else there is a deadlock
-
 	unsafe {
+		let hwnd = INSTANCE.get().unwrap().window as HWND; // Need to eager evaluate else there is a deadlock
 		ShowWindow(hwnd, SW_SHOW);
+		hwnd
 	}
-
-	hwnd
 }
