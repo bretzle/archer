@@ -1,6 +1,6 @@
 [package]
 name = "appbar"
-version = "0.2.0"
+version = "0.3.0"
 authors = ["bretzle <johnfish218@gmail.com>"]
 edition = "2018"
 
