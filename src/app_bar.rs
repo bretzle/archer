@@ -17,20 +17,24 @@ use winapi::{
 		},
 	},
 };
-use winsapi::{CTypeExt, DeviceContext, PtrExt, WinApiResult};
+use winsapi::{DeviceContext, PtrExt, WinApiError, WinApiResult};
 
 mod system;
 
 pub type RedrawReason = String;
 
 pub fn redraw(reason: RedrawReason) -> WinApiResult<()> {
-	unsafe {
+	let ret = unsafe {
 		let app = INSTANCE.get_mut().unwrap();
 		app.redraw_reason = reason;
 		let hwnd = app.window.unwrap();
-		(SendMessageA(hwnd as HWND, WM_PAINT, 0, 0) as i32)
-			.as_result()
-			.map(|_| ())
+		SendMessageA(hwnd as HWND, WM_PAINT, 0, 0) as i32
+	};
+
+	if ret == 0 {
+		Ok(())
+	} else {
+		Err(WinApiError::Err(ret))
 	}
 }
 
