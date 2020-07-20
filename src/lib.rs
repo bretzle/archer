@@ -71,7 +71,7 @@ impl AppBar {
 
 	fn handle_event(msg: Event) {
 		match msg {
-			Event::RedrawAppBar(reason) => app_bar::redraw(reason),
+			Event::RedrawAppBar(reason) => app_bar::redraw(reason).unwrap(),
 			Event::WinEvent(_) => {
 				if util::is_fullscreen() {
 					app_bar::hide();
