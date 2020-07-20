@@ -1,6 +1,5 @@
 use crate::{app_bar::RedrawReason, Component, DrawData};
 use std::time::Duration;
-use winapi::um::winuser::{DT_CENTER, DT_SINGLELINE, DT_VCENTER};
 use winsapi::*;
 
 #[derive(Debug, Default)]
@@ -23,7 +22,7 @@ impl Component for Date {
 		dc.rect.right -= 10;
 		dc.rect.left = dc.rect.right - size.cx;
 
-		dc.draw_text(text, DT_CENTER | DT_VCENTER | DT_SINGLELINE)?;
+		dc.draw_text(text, TextOptions::default())?;
 
 		Ok(())
 	}

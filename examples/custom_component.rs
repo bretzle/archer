@@ -1,7 +1,6 @@
 use appbar::prelude::*;
 use std::{thread, time::Duration};
-use winapi::um::winuser::{DT_CENTER, DT_SINGLELINE, DT_VCENTER};
-use winsapi::{DeviceContext, WinApiError};
+use winsapi::*;
 
 fn main() {
 	simple_logger::init().unwrap();
@@ -35,7 +34,7 @@ impl Component for Custom {
 		dc.set_text_color(0x00ffffff);
 		dc.set_background_color(*data.bg_color as u32);
 
-		dc.draw_text(text, DT_CENTER | DT_VCENTER | DT_SINGLELINE)?;
+		dc.draw_text(text, TextOptions::default())?;
 
 		Ok(())
 	}
