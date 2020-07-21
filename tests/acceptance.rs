@@ -1,4 +1,4 @@
-use appbar::AppBar;
+use appbar::prelude::AppBar;
 
 #[test]
 fn singleton() {

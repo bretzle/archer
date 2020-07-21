@@ -1,4 +1,4 @@
-use appbar::{components::*, AppBar};
+use appbar::{components::*, prelude::AppBar};
 use std::{thread, time::Duration};
 
 fn main() {

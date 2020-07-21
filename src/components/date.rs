@@ -1,4 +1,7 @@
-use crate::{app_bar::RedrawReason, Component, DrawData};
+use crate::{
+	app_bar::{DrawData, RedrawReason},
+	Component,
+};
 use std::time::Duration;
 use winsapi::*;
 
