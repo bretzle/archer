@@ -1,10 +1,10 @@
-use appbar::{components::*, prelude::AppBar};
+use polybar::{components::*, prelude::*};
 use std::{thread, time::Duration};
 
 fn main() {
 	simple_logger::init().unwrap();
 
-	let bar = AppBar::create()
+	let bar = PolyBar::create()
 		.with_component(Box::new(Clock::default()))
 		.with_component(Box::new(Date::default()));
 

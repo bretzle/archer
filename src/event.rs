@@ -1,4 +1,4 @@
-use crate::app_bar::RedrawReason;
+use crate::poly_bar::RedrawReason;
 use crossbeam_channel::{unbounded, Receiver, Sender};
 use std::fmt::{self, Debug};
 use winapi::um::winuser::{

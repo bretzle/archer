@@ -1,5 +1,5 @@
 use crate::{
-	app_bar::{DrawData, RedrawReason},
+	poly_bar::{DrawData, RedrawReason},
 	Component,
 };
 use std::time::Duration;

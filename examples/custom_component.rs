@@ -1,11 +1,11 @@
-use appbar::prelude::*;
+use polybar::prelude::*;
 use std::{thread, time::Duration};
 use winsapi::*;
 
 fn main() {
 	simple_logger::init().unwrap();
 
-	let bar = AppBar::create().with_component(Box::new(Custom::default()));
+	let bar = PolyBar::create().with_component(Box::new(Custom::default()));
 
 	bar.start();
 

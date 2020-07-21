@@ -31,7 +31,7 @@ mod system;
 pub type RedrawReason = String;
 
 #[derive(Debug, Default)]
-pub struct AppBar {
+pub struct PolyBar {
 	display: Display,
 	config: Config,
 	window: Option<i32>,
@@ -42,13 +42,13 @@ pub struct AppBar {
 	draw_data: Option<DrawData>,
 }
 
-impl AppBar {
+impl PolyBar {
 	pub fn create() -> &'static mut Self {
 		unsafe {
 			match INSTANCE.get_mut() {
 				Some(instance) => instance,
 				None => {
-					INSTANCE.set(AppBar::default()).unwrap();
+					INSTANCE.set(PolyBar::default()).unwrap();
 					INSTANCE.get_mut().unwrap()
 				}
 			}

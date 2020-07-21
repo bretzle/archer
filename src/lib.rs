@@ -1,19 +1,19 @@
-use app_bar::AppBar;
+use poly_bar::PolyBar;
 use components::Component;
 use once_cell::sync::OnceCell;
 
-mod app_bar;
+mod poly_bar;
 pub mod components;
 mod config;
 mod display;
 mod event;
 mod util;
 
-static mut INSTANCE: OnceCell<AppBar> = OnceCell::new();
+static mut INSTANCE: OnceCell<PolyBar> = OnceCell::new();
 
 pub mod prelude {
 	pub use crate::{
-		app_bar::{AppBar, DrawData, RedrawReason},
+		poly_bar::{PolyBar, DrawData, RedrawReason},
 		components::Component,
 		event::{Event, EventSender},
 	};

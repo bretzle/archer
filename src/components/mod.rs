@@ -1,4 +1,4 @@
-use crate::app_bar::{DrawData, RedrawReason};
+use crate::poly_bar::{DrawData, RedrawReason};
 use std::{fmt::Debug, time::Duration};
 use winsapi::{DeviceContext, WinApiResult};
 
