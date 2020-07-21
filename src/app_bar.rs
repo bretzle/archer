@@ -24,7 +24,7 @@ use winapi::{
 		},
 	},
 };
-use winsapi::{DeviceContext, Font, PtrExt, WinApiError, WinApiResult};
+use winsapi::{CTypeExt, DeviceContext, Font, PtrExt, WinApiError, WinApiResult};
 
 mod system;
 
@@ -72,10 +72,10 @@ pub fn create() {
 	});
 
 	thread::spawn(move || unsafe {
-		//TODO: Handle error
-		let instance = GetModuleHandleA(ptr::null_mut());
-		//TODO: Handle error
-		let background_brush = CreateSolidBrush(config.bg_color as u32);
+		let instance = GetModuleHandleA(ptr::null_mut()).as_result().unwrap();
+		let background_brush = CreateSolidBrush(config.bg_color as u32)
+			.as_result()
+			.unwrap();
 
 		let class = WNDCLASSA {
 			hInstance: instance as HINSTANCE,
@@ -85,9 +85,8 @@ pub fn create() {
 			..WNDCLASSA::default()
 		};
 
-		RegisterClassA(&class);
+		RegisterClassA(&class).as_result().unwrap();
 
-		//TODO: handle error
 		let window_handle = CreateWindowExA(
 			winapi::um::winuser::WS_EX_NOACTIVATE | winapi::um::winuser::WS_EX_TOPMOST,
 			name.as_ptr() as *const i8,
@@ -101,7 +100,9 @@ pub fn create() {
 			ptr::null_mut(),
 			instance as HINSTANCE,
 			ptr::null_mut(),
-		);
+		)
+		.as_result()
+		.unwrap();
 
 		let app = INSTANCE.get_mut().unwrap();
 
