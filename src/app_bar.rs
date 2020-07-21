@@ -112,7 +112,7 @@ pub fn create() {
 
 		let draw_data = app.draw_data.as_ref().unwrap();
 
-		let hwnd = show();
+		let hwnd = app.show();
 
 		for component in app.components.values() {
 			component
@@ -153,21 +153,6 @@ pub fn create() {
 			thread::sleep(Duration::from_millis(5));
 		}
 	});
-}
-
-pub fn hide() {
-	unsafe {
-		let hwnd = INSTANCE.get().unwrap().window.unwrap() as HWND; // Need to eager evaluate else there is a deadlock
-		ShowWindow(hwnd, SW_HIDE);
-	}
-}
-
-pub fn show() -> HWND {
-	unsafe {
-		let hwnd = INSTANCE.get().unwrap().window.unwrap() as HWND; // Need to eager evaluate else there is a deadlock
-		ShowWindow(hwnd, SW_SHOW);
-		hwnd
-	}
 }
 
 #[derive(Debug, Default)]
@@ -215,21 +200,21 @@ impl AppBar {
 			loop {
 				select! {
 					recv(receiver) -> msg => {
-						Self::handle_event(msg.unwrap());
+						self.handle_event(msg.unwrap());
 					}
 				}
 			}
 		});
 	}
 
-	fn handle_event(msg: Event) {
+	fn handle_event(&'static self, msg: Event) {
 		match msg {
 			Event::RedrawAppBar(reason) => redraw(reason).unwrap(),
 			Event::WinEvent(_) => {
 				if util::is_fullscreen() {
-					hide();
+					self.hide();
 				} else {
-					show();
+					self.show();
 				}
 			}
 			_ => {}
@@ -242,6 +227,21 @@ impl AppBar {
 			bg_color: &self.config.bg_color,
 			font: &self.font,
 		})
+	}
+
+	pub fn hide(&'static self) {
+		unsafe {
+			let hwnd = self.window.unwrap() as HWND; // Need to eager evaluate else there is a deadlock
+			ShowWindow(hwnd, SW_HIDE);
+		}
+	}
+
+	pub fn show(&'static self) -> HWND {
+		unsafe {
+			let hwnd = self.window.unwrap() as HWND; // Need to eager evaluate else there is a deadlock
+			ShowWindow(hwnd, SW_SHOW);
+			hwnd
+		}
 	}
 }
 
