@@ -1,9 +1,5 @@
 use crate::{
-	components::Component,
-	config::Config,
-	display::Display,
-	event::{Event, EventChannel},
-	util, INSTANCE,
+	components::Component, config::Config, display::Display, event::Event, util, INSTANCE,
 };
 use crossbeam_channel::select;
 use log::{debug, info};
@@ -24,7 +20,7 @@ use winapi::{
 		},
 	},
 };
-use winsapi::{CTypeExt, DeviceContext, Font, PtrExt, WinApiError, WinApiResult};
+use winsapi::{CTypeExt, DeviceContext, EventChannel, Font, PtrExt, WinApiError, WinApiResult};
 
 mod system;
 
@@ -38,7 +34,7 @@ pub struct PolyBar {
 	font: Font,
 	redraw_reason: RedrawReason,
 	components: HashMap<RedrawReason, Box<dyn Component>>,
-	channel: EventChannel,
+	channel: EventChannel<Event>,
 	draw_data: Option<DrawData>,
 }
 

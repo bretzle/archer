@@ -1,6 +1,5 @@
 use crate::poly_bar::RedrawReason;
-use crossbeam_channel::{unbounded, Receiver, Sender};
-use std::fmt::{self, Debug};
+use std::fmt::Debug;
 use winapi::um::winuser::{
 	EVENT_OBJECT_DESTROY, EVENT_OBJECT_HIDE, EVENT_OBJECT_SHOW, EVENT_SYSTEM_FOREGROUND,
 };
@@ -10,28 +9,6 @@ pub enum Event {
 	RedrawAppBar(RedrawReason),
 	WinEvent(WinEvent),
 	__Nonexhaustive,
-}
-
-pub type EventSender = Sender<Event>;
-pub type EventReceiver = Receiver<Event>;
-
-pub struct EventChannel {
-	pub sender: EventSender,
-	pub receiver: EventReceiver,
-}
-
-impl Default for EventChannel {
-	fn default() -> Self {
-		let (sender, receiver) = unbounded();
-
-		Self { sender, receiver }
-	}
-}
-
-impl fmt::Debug for EventChannel {
-	fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-		f.write_str("[..]")
-	}
 }
 
 #[derive(Debug, Copy, Clone)]
