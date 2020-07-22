@@ -1,7 +1,7 @@
 use crate::{config::Config, INSTANCE};
 use crossbeam_channel::select;
 use std::thread;
-use winsapi::EventChannel;
+use winsapi::{EventChannel, GlobalHotkeySet, Key, Modifier};
 
 #[derive(Debug, Default)]
 pub struct WTM {
@@ -38,9 +38,21 @@ impl WTM {
 		});
 	}
 
-	fn register_keybinds(&'static self) {}
+	fn register_keybinds(&'static self) {
+		let hotkeys = GlobalHotkeySet::new()
+			.add_global_hotkey(Event::Quick, Modifier::Ctrl + Modifier::Alt + Key::Q)
+			.add_global_hotkey(Event::Main, Modifier::Ctrl + Modifier::Alt + Key::S);
 
-	fn handle_event(&'static self, msg: Event) {}
+		self.channel.listen_for_hotkeys(hotkeys)
+	}
+
+	fn handle_event(&'static self, msg: Event) {
+		println!("{:?}", msg);
+	}
 }
 
-pub enum Event {}
+#[derive(Debug, Copy, Clone)]
+pub enum Event {
+	Main,
+	Quick,
+}
