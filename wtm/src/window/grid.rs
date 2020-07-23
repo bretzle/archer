@@ -2,7 +2,7 @@ use crate::{
 	str_to_wide,
 	util::{get_work_area, Rect},
 	window::Window,
-	Message, CHANNEL, GRID,
+	Message, GRID, INSTANCE,
 };
 use crossbeam_channel::{select, Receiver};
 use std::{mem, ptr, thread, time::Duration};
@@ -59,7 +59,13 @@ pub fn spawn_grid_window(close_msg: Receiver<()>) {
 			ptr::null_mut(),
 		);
 
-		let _ = CHANNEL.get().unwrap().0.clone().send(Message::GridWindow(Window(hwnd)));
+		let _ = INSTANCE
+			.get()
+			.unwrap()
+			.channel
+			.sender
+			.clone()
+			.send(Message::GridWindow(Window(hwnd)));
 
 		let mut msg = mem::zeroed();
 		loop {
@@ -84,7 +90,7 @@ unsafe extern "system" fn callback(
 	wparam: WPARAM,
 	lparam: LPARAM,
 ) -> LRESULT {
-	let sender = CHANNEL.get().unwrap().0.clone();
+	let sender = INSTANCE.get().unwrap().channel.sender.clone();
 
 	let repaint = match msg {
 		WM_PAINT => {

@@ -6,12 +6,12 @@
 #[macro_use]
 extern crate log;
 
-pub mod config;
-pub mod event;
-pub mod grid;
-pub mod hotkey;
-pub mod util;
-pub mod window;
+mod config;
+mod event;
+mod grid;
+mod hotkey;
+mod util;
+mod window;
 
 use crate::{
 	config::Config,
@@ -21,28 +21,53 @@ use crate::{
 	util::{get_foreground_window, Message, Result},
 	window::{spawn_grid_window, spawn_preview_window, Window},
 };
-use crossbeam_channel::{bounded, select, unbounded, Receiver, Sender};
+use crossbeam_channel::{bounded, select};
 use once_cell::sync::OnceCell;
 use std::mem;
 use winapi::um::winuser::{
 	SetForegroundWindow, ShowWindow, TrackMouseEvent, SW_SHOW, TME_LEAVE, TRACKMOUSEEVENT,
 };
+use winsapi::EventChannel;
 
-static CONFIG: OnceCell<Config> = OnceCell::new();
-static CHANNEL: OnceCell<(Sender<Message>, Receiver<Message>)> = OnceCell::new();
 static mut GRID: OnceCell<Grid> = OnceCell::new();
+
+static mut INSTANCE: OnceCell<TilingManager> = OnceCell::new();
+
+#[derive(Debug, Default)]
+pub struct TilingManager {
+	config: Config,
+	channel: EventChannel<Message>,
+}
+
+impl TilingManager {
+	pub fn create() -> &'static mut Self {
+		unsafe {
+			match INSTANCE.get_mut() {
+				Some(instance) => instance,
+				None => {
+					INSTANCE.set(TilingManager::default()).unwrap();
+					INSTANCE.get_mut().unwrap()
+				}
+			}
+		}
+	}
+
+	pub fn start(&'static self) {
+		println!("Starting tiling manager");
+	}
+}
 
 /// Runs the program
 pub fn run() -> Result {
-	let config = CONFIG.get_or_init(|| Config::load().unwrap());
-	let channel = CHANNEL.get_or_init(unbounded);
+	let config = unsafe { &INSTANCE.get().unwrap().config };
+	let channel = unsafe { &INSTANCE.get().unwrap().channel };
 	let mut grid = unsafe {
 		GRID.set(Grid::from(config)).unwrap();
 		GRID.get_mut().unwrap()
 	};
 
-	let receiver = channel.1.clone();
-	let sender = channel.0.clone();
+	let receiver = channel.receiver.clone();
+	let sender = channel.sender.clone();
 
 	let close_channel = bounded::<()>(3);
 

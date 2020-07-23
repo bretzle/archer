@@ -1,4 +1,4 @@
-use crate::{str_to_wide, window::Window, Message, CHANNEL};
+use crate::{str_to_wide, window::Window, Message, INSTANCE};
 use crossbeam_channel::{select, Receiver};
 use std::{mem, ptr, thread, time::Duration};
 use winapi::{
@@ -50,7 +50,13 @@ pub fn spawn_preview_window(close_msg: Receiver<()>) {
 
 		SetLayeredWindowAttributes(hwnd, 0, 107, LWA_ALPHA);
 
-		let _ = CHANNEL.get().unwrap().0.clone().send(Message::PreviewWindow(Window(hwnd)));
+		let _ = INSTANCE
+			.get()
+			.unwrap()
+			.channel
+			.sender
+			.clone()
+			.send(Message::PreviewWindow(Window(hwnd)));
 
 		let mut msg = mem::zeroed();
 		loop {

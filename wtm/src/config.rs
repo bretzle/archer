@@ -1,9 +1,6 @@
 //! Wtm's Config implementation
 
-use crate::{
-	hotkey::{HotkeyType, Keybind},
-	Result,
-};
+use crate::hotkey::{HotkeyType, Keybind};
 
 /// Wtm's Config
 #[derive(Debug, Clone)]
@@ -18,9 +15,9 @@ pub struct Config {
 	pub keybinds: Vec<Keybind>,
 }
 
-impl Config {
-	pub fn load() -> Result<Self> {
-		Ok(Config {
+impl Default for Config {
+	fn default() -> Self {
+		Config {
 			margin: 10,
 			padding: 10,
 			auto_start: false,
@@ -34,6 +31,6 @@ impl Config {
 					typ: HotkeyType::QuickResize,
 				},
 			],
-		})
+		}
 	}
 }

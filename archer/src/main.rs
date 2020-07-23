@@ -1,5 +1,11 @@
+use wtm::TilingManager;
+
 fn main() {
-	println!("Hello, world!");
+	simple_logger::init().unwrap();
+
+	let tm = TilingManager::create();
+
+	tm.start();
 
 	wtm::run();
 }

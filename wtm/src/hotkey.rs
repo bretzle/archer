@@ -3,7 +3,7 @@
 use crate::{
 	util::{get_foreground_window, report_and_exit},
 	window::Window,
-	Message, CHANNEL, GRID,
+	Message, GRID, INSTANCE,
 };
 use crossbeam_channel::Sender;
 use std::{mem, ptr, thread};
@@ -53,7 +53,7 @@ pub fn spawn_hotkey_thread(hotkey_str: &str, hotkey_type: HotkeyType) {
 
 	let hotkey_str = hotkey_str.to_owned();
 	thread::spawn(move || unsafe {
-		let sender = CHANNEL.get().unwrap().0.clone();
+		let sender = INSTANCE.get().unwrap().channel.sender.clone();
 
 		let result = RegisterHotKey(
 			ptr::null_mut(),
