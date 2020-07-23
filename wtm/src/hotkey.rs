@@ -13,7 +13,7 @@ use winapi::um::winuser::{
 };
 
 /// The Commands that a keybind can execute
-#[derive(PartialEq, Deserialize, Clone, Copy, Debug)]
+#[derive(PartialEq, Clone, Copy, Debug)]
 pub enum HotkeyType {
 	/// Open the grid window and resize as many windows until executed again
 	Main,
@@ -26,12 +26,11 @@ pub enum HotkeyType {
 }
 
 /// A keybind
-#[derive(Debug, Deserialize, Clone)]
+#[derive(Debug, Clone)]
 pub struct Keybind {
 	/// The sequence of key(s) that need to be pressed in combination to execute a command
 	pub hotkey: String,
 	/// The command that the keybind should execute
-	#[serde(rename = "type")]
 	pub typ: HotkeyType,
 }
 

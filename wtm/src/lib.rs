@@ -3,22 +3,15 @@
 //!
 //! A simple tiling manager that works natively for Windows
 
-#![allow(non_snake_case)]
-#![deny(missing_docs)]
-
-#[macro_use]
-extern crate serde;
 #[macro_use]
 extern crate log;
 #[macro_use]
 extern crate lazy_static;
 
-pub mod autostart;
 pub mod config;
 pub mod event;
 pub mod grid;
 pub mod hotkey;
-pub mod tray;
 pub mod util;
 pub mod window;
 
@@ -27,7 +20,6 @@ use crate::{
 	event::{spawn_foreground_hook, spawn_track_monitor_thread},
 	grid::Grid,
 	hotkey::spawn_hotkey_thread,
-	tray::spawn_sys_tray,
 	util::{get_foreground_window, Message, Result},
 	window::{spawn_grid_window, spawn_preview_window, Window},
 };
@@ -61,16 +53,8 @@ pub fn run() -> Result {
 
 	let config = CONFIG.lock().unwrap().clone();
 
-	unsafe {
-		autostart::toggle_autostart_registry_key(config.auto_start);
-	}
-
 	for keybind in &config.keybinds {
 		spawn_hotkey_thread(&keybind.hotkey, keybind.typ);
-	}
-
-	unsafe {
-		spawn_sys_tray();
 	}
 
 	let mut preview_window: Option<Window> = None;
