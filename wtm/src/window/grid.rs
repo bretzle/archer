@@ -1,4 +1,4 @@
-use crate::{str_to_wide, util::get_work_area, Message, INSTANCE};
+use crate::{util::get_work_area, Event, INSTANCE};
 use crossbeam_channel::{select, Receiver};
 use std::{mem, ptr, thread, time::Duration};
 use winapi::{
@@ -18,7 +18,7 @@ use winapi::{
 		},
 	},
 };
-use winsapi::{Rect, Window};
+use winsapi::{str_to_wide, Rect, Window};
 
 /// Draw's the grid selection window
 pub fn spawn_grid_window(close_msg: Receiver<()>) {
@@ -61,7 +61,7 @@ pub fn spawn_grid_window(close_msg: Receiver<()>) {
 			.channel
 			.sender
 			.clone()
-			.send(Message::GridWindow(Window(hwnd)));
+			.send(Event::GridWindow(Window(hwnd)));
 
 		let mut msg = mem::zeroed();
 		loop {
@@ -95,7 +95,7 @@ unsafe extern "system" fn callback(
 		}
 		WM_KEYDOWN => match wparam as i32 {
 			VK_ESCAPE => {
-				let _ = sender.send(Message::CloseWindows);
+				let _ = sender.send(Event::CloseWindows);
 				false
 			}
 			VK_CONTROL => {
@@ -146,27 +146,27 @@ unsafe extern "system" fn callback(
 				false
 			}
 			VK_F1 => {
-				let _ = sender.send(Message::ProfileChange("Default"));
+				let _ = sender.send(Event::ProfileChange("Default"));
 				false
 			}
 			VK_F2 => {
-				let _ = sender.send(Message::ProfileChange("Profile2"));
+				let _ = sender.send(Event::ProfileChange("Profile2"));
 				false
 			}
 			VK_F3 => {
-				let _ = sender.send(Message::ProfileChange("Profile3"));
+				let _ = sender.send(Event::ProfileChange("Profile3"));
 				false
 			}
 			VK_F4 => {
-				let _ = sender.send(Message::ProfileChange("Profile4"));
+				let _ = sender.send(Event::ProfileChange("Profile4"));
 				false
 			}
 			VK_F5 => {
-				let _ = sender.send(Message::ProfileChange("Profile5"));
+				let _ = sender.send(Event::ProfileChange("Profile5"));
 				false
 			}
 			VK_F6 => {
-				let _ = sender.send(Message::ProfileChange("Profile6"));
+				let _ = sender.send(Event::ProfileChange("Profile6"));
 				false
 			}
 			_ => false,
@@ -175,10 +175,10 @@ unsafe extern "system" fn callback(
 			let x = LOWORD(lparam as u32) as i32;
 			let y = HIWORD(lparam as u32) as i32;
 
-			let _ = sender.send(Message::TrackMouse(Window(hwnd)));
+			let _ = sender.send(Event::TrackMouse(Window(hwnd)));
 
 			if let Some(rect) = INSTANCE.get_mut().unwrap().grid.highlight_tiles((x, y)) {
-				let _ = sender.send(Message::HighlightZone(rect));
+				let _ = sender.send(Event::HighlightZone(rect));
 
 				true
 			} else {
@@ -212,7 +212,7 @@ unsafe extern "system" fn callback(
 						grid.previous_resize = Some((active_window, rect));
 
 						if grid.quick_resize {
-							let _ = sender.send(Message::CloseWindows);
+							let _ = sender.send(Event::CloseWindows);
 						}
 					}
 
@@ -231,8 +231,8 @@ unsafe extern "system" fn callback(
 		WM_MOUSELEAVE => {
 			INSTANCE.get_mut().unwrap().grid.unhighlight_all_tiles();
 
-			let _ = sender.send(Message::MouseLeft);
-			let _ = sender.send(Message::HighlightZone(Rect::zero()));
+			let _ = sender.send(Event::MouseLeft);
+			let _ = sender.send(Event::HighlightZone(Rect::zero()));
 
 			true
 		}

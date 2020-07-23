@@ -18,10 +18,10 @@ use crate::{
 	event::{spawn_foreground_hook, spawn_track_monitor_thread},
 	grid::Grid,
 	hotkey::spawn_hotkey_thread,
-	util::{get_foreground_window, Message, Result},
 	window::{spawn_grid_window, spawn_preview_window},
 };
 use crossbeam_channel::{bounded, select};
+use event::Event;
 use once_cell::sync::OnceCell;
 use std::mem;
 use winapi::um::winuser::{
@@ -34,7 +34,7 @@ static mut INSTANCE: OnceCell<TilingManager> = OnceCell::new();
 #[derive(Debug, Default)]
 pub struct TilingManager {
 	config: Config,
-	channel: EventChannel<Message>,
+	channel: EventChannel<Event>,
 	grid: Grid,
 }
 
@@ -53,11 +53,12 @@ impl TilingManager {
 
 	pub fn start(&'static self) {
 		println!("Starting tiling manager");
+		run();
 	}
 }
 
 /// Runs the program
-pub fn run() -> Result {
+fn run() {
 	let config = unsafe { &INSTANCE.get().unwrap().config };
 	let channel = unsafe { &INSTANCE.get().unwrap().channel };
 	let mut grid = unsafe { &mut INSTANCE.get_mut().unwrap().grid };
@@ -81,7 +82,7 @@ pub fn run() -> Result {
 		select! {
 			recv(receiver) -> msg => {
 				match msg.unwrap() {
-					Message::PreviewWindow(window) => unsafe {
+					Event::PreviewWindow(window) => unsafe {
 						preview_window = Some(window);
 
 						spawn_foreground_hook(close_channel.1.clone());
@@ -89,27 +90,27 @@ pub fn run() -> Result {
 						ShowWindow(grid_window.as_ref().unwrap().0, SW_SHOW);
 						SetForegroundWindow(grid_window.as_ref().unwrap().0);
 					}
-					Message::GridWindow(window) => {
+					Event::GridWindow(window) => {
 						grid_window = Some(window);
 
 						let mut grid = unsafe{&mut INSTANCE.get_mut().unwrap().grid};
 
 						grid.grid_window = Some(window);
-						grid.active_window = Some(get_foreground_window());
+						grid.active_window = Some(Window::get_foreground_window());
 
 						spawn_track_monitor_thread(close_channel.1.clone());
 						spawn_preview_window(close_channel.1.clone());
 					}
-					Message::HighlightZone(rect) => {
+					Event::HighlightZone(rect) => {
 						let mut preview_window = preview_window.unwrap_or_default();
 						let grid_window = grid_window.unwrap_or_default();
 
 						preview_window.set_pos(rect, Some(grid_window));
 					}
-					Message::HotkeyPressed(hotkey_type) => {
+					Event::HotkeyPressed(hotkey_type) => {
 						hotkey::handle(hotkey_type, &sender, &preview_window, &grid_window);
 					}
-					Message::TrackMouse(window) => unsafe {
+					Event::TrackMouse(window) => unsafe {
 						if !track_mouse {
 							let mut event_track: TRACKMOUSEEVENT = mem::zeroed();
 							event_track.cbSize = mem::size_of::<TRACKMOUSEEVENT>() as u32;
@@ -121,17 +122,17 @@ pub fn run() -> Result {
 							track_mouse = true;
 						}
 					}
-					Message::MouseLeft => {
+					Event::MouseLeft => {
 						track_mouse = false;
 					}
-					Message::ActiveWindowChange(window) => {
+					Event::ActiveWindowChange(window) => {
 						let mut grid = unsafe{&mut INSTANCE.get_mut().unwrap().grid};
 
 						if grid.grid_window != Some(window) && grid.active_window != Some(window) {
 							grid.active_window = Some(window);
 						}
 					}
-					Message::MonitorChange => {
+					Event::MonitorChange => {
 						let mut grid = unsafe{&mut INSTANCE.get_mut().unwrap().grid};
 
 						let active_window = grid.active_window;
@@ -147,10 +148,10 @@ pub fn run() -> Result {
 
 						grid.reposition();
 					}
-					Message::ProfileChange(_) => {
+					Event::ProfileChange(_) => {
 						todo!()
 					}
-					Message::InitializeWindows => {
+					Event::InitializeWindows => {
 						let quick_resize = grid.quick_resize;
 						let previous_resize = grid.previous_resize;
 
@@ -161,7 +162,7 @@ pub fn run() -> Result {
 
 						spawn_grid_window(close_channel.1.clone());
 					}
-					Message::CloseWindows => {
+					Event::CloseWindows => {
 						preview_window.take();
 						grid_window.take();
 

@@ -1,6 +1,6 @@
 //! Hotkey module
 
-use crate::{util::report_and_exit, Message, INSTANCE};
+use crate::{Event, INSTANCE};
 use crossbeam_channel::Sender;
 use std::{mem, ptr, thread};
 use winapi::um::winuser::{
@@ -36,7 +36,7 @@ pub fn spawn_hotkey_thread(hotkey_str: &str, hotkey_type: HotkeyType) {
 		.collect();
 
 	if hotkey.len() < 2 || hotkey.len() > 5 {
-		report_and_exit(&format!(
+		panic!(format!(
 			"Invalid hotkey <{}>: Combination must be between 2 to 5 keys long.",
 			hotkey_str
 		));
@@ -56,7 +56,7 @@ pub fn spawn_hotkey_thread(hotkey_str: &str, hotkey_type: HotkeyType) {
 		);
 
 		if result == 0 {
-			report_and_exit(&format!("Failed to assign hot key <{}>. Either program is already running or hotkey is already assigned in another program.", hotkey_str));
+			panic!(format!("Failed to assign hot key <{}>. Either program is already running or hotkey is already assigned in another program.", hotkey_str));
 		}
 
 		let mut msg = mem::zeroed();
@@ -65,7 +65,7 @@ pub fn spawn_hotkey_thread(hotkey_str: &str, hotkey_type: HotkeyType) {
 			DispatchMessageW(&msg);
 
 			if msg.message == WM_HOTKEY {
-				let _ = sender.send(Message::HotkeyPressed(hotkey_type));
+				let _ = sender.send(Event::HotkeyPressed(hotkey_type));
 			}
 		}
 	});
@@ -79,7 +79,7 @@ fn compile_modifiers(activators: &[String], hotkey_str: &str) -> u32 {
             "CTRL" => code |= MOD_CONTROL as u32,
             "SHIFT" => code |= MOD_SHIFT as u32,
             "WIN" => code |= MOD_WIN as u32,
-            _ => report_and_exit(&format!("Invalid hotkey <{}>: Unidentified modifier in hotkey combination. Valid modifiers are CTRL, ALT, SHIFT, WIN.", hotkey_str))
+            _ => panic!(format!("Invalid hotkey <{}>: Unidentified modifier in hotkey combination. Valid modifiers are CTRL, ALT, SHIFT, WIN.", hotkey_str))
         }
 	}
 	code
@@ -90,7 +90,7 @@ unsafe fn get_vkcode(key_char: char) -> u32 {
 	let vk_code = VkKeyScanExW(key_char as u16, keyboard_layout);
 
 	if vk_code == -1 {
-		report_and_exit(&format!("Invalid key {} in hotkey combination.", key_char));
+		panic!(format!("Invalid key {} in hotkey combination.", key_char));
 	}
 
 	vk_code.to_be_bytes()[1] as u32
@@ -99,20 +99,20 @@ unsafe fn get_vkcode(key_char: char) -> u32 {
 /// Process's commands when a keybind is pressed
 pub fn handle(
 	hotkey: HotkeyType,
-	sender: &Sender<Message>,
+	sender: &Sender<Event>,
 	preview_window: &Option<Window>,
 	grid_window: &Option<Window>,
 ) {
 	match hotkey {
 		HotkeyType::Main => {
 			if preview_window.is_some() && grid_window.is_some() {
-				let _ = sender.send(Message::CloseWindows);
+				let _ = sender.send(Event::CloseWindows);
 			} else {
-				let _ = sender.send(Message::InitializeWindows);
+				let _ = sender.send(Event::InitializeWindows);
 			}
 		}
 		HotkeyType::QuickResize => {
-			let _ = sender.send(Message::InitializeWindows);
+			let _ = sender.send(Event::InitializeWindows);
 			unsafe { INSTANCE.get_mut().unwrap().grid.quick_resize = true };
 		}
 	}

@@ -1,6 +1,6 @@
 //! Event module
 
-use crate::{util::get_active_monitor_name, Message, INSTANCE};
+use crate::{hotkey::HotkeyType, util::get_active_monitor_name, INSTANCE};
 use crossbeam_channel::{select, Receiver};
 use std::{mem, ptr, thread, time::Duration};
 use winapi::{
@@ -16,7 +16,34 @@ use winapi::{
 		},
 	},
 };
-use winsapi::Window;
+use winsapi::{Rect, Window};
+
+/// Messages that are sent over [CHANNEL](../struct.CHANNEL.html)
+#[derive(Debug)]
+pub enum Event {
+	///
+	PreviewWindow(Window),
+	///
+	GridWindow(Window),
+	/// Highlight the hovered area over the grid window
+	HighlightZone(Rect),
+	/// A registered hotkey was pressed
+	HotkeyPressed(HotkeyType),
+	/// Tracks the mouse over the grid window
+	TrackMouse(Window),
+	/// The active window changed
+	ActiveWindowChange(Window),
+	/// A different profile was activated
+	ProfileChange(&'static str),
+	/// The active monitor changed
+	MonitorChange,
+	/// Mouse left the Grid window
+	MouseLeft,
+	/// Draw the grid window
+	InitializeWindows,
+	/// Close the windows drawn by wtm
+	CloseWindows,
+}
 
 // TODO figure out what this does
 ///
@@ -60,7 +87,7 @@ pub fn spawn_track_monitor_thread(close_msg: Receiver<()>) {
 			if current_monitor != previous_monitor {
 				previous_monitor = current_monitor.clone();
 
-				let _ = sender.send(Message::MonitorChange);
+				let _ = sender.send(Event::MonitorChange);
 			}
 
 			select! {
@@ -83,5 +110,5 @@ unsafe extern "system" fn callback(
 	_: DWORD,
 ) {
 	let sender = INSTANCE.get().unwrap().channel.sender.clone();
-	let _ = sender.send(Message::ActiveWindowChange(Window(hwnd)));
+	let _ = sender.send(Event::ActiveWindowChange(Window(hwnd)));
 }

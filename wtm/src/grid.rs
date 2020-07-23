@@ -312,19 +312,6 @@ impl Grid {
 		self.selected_tile != previously_selected
 	}
 
-	/// Gets the max area
-	pub fn get_max_area(&self) -> Rect {
-		let from_zone = self.zone_area(0, 0);
-		let to_zone = self.zone_area(self.rows() - 1, self.columns() - 1);
-
-		Rect {
-			x: from_zone.x,
-			y: from_zone.y,
-			w: (to_zone.x + to_zone.w) - from_zone.x,
-			h: (to_zone.y + to_zone.h) - from_zone.y,
-		}
-	}
-
 	/// Gets the selected area
 	pub unsafe fn selected_area(&mut self) -> Option<Rect> {
 		if let Some(shift_rect) = self.shift_hover_and_calc_rect(false) {

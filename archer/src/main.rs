@@ -6,6 +6,4 @@ fn main() {
 	let tm = TilingManager::create();
 
 	tm.start();
-
-	wtm::run();
 }
