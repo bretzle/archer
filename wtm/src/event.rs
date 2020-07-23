@@ -1,6 +1,6 @@
 //! Event module
 
-use crate::{hotkey::HotkeyType, util::get_active_monitor_name, INSTANCE};
+use crate::{hotkey::HotkeyType, INSTANCE};
 use crossbeam_channel::{select, Receiver};
 use std::{mem, ptr, thread, time::Duration};
 use winapi::{
@@ -16,7 +16,7 @@ use winapi::{
 		},
 	},
 };
-use winsapi::{Rect, Window};
+use winsapi::{Rect, Window, Monitor};
 
 /// Messages that are sent over [CHANNEL](../struct.CHANNEL.html)
 #[derive(Debug)]
@@ -79,10 +79,10 @@ pub fn spawn_track_monitor_thread(close_msg: Receiver<()>) {
 	thread::spawn(move || unsafe {
 		let sender = INSTANCE.get().unwrap().channel.sender.clone();
 
-		let mut previous_monitor = get_active_monitor_name();
+		let mut previous_monitor = Monitor::get_active().name();
 
 		loop {
-			let current_monitor = get_active_monitor_name();
+			let current_monitor = Monitor::get_active().name();
 
 			if current_monitor != previous_monitor {
 				previous_monitor = current_monitor.clone();

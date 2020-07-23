@@ -1,4 +1,4 @@
-use crate::{util::get_work_area, Event, INSTANCE};
+use crate::{Event, INSTANCE};
 use crossbeam_channel::{select, Receiver};
 use std::{mem, ptr, thread, time::Duration};
 use winapi::{
@@ -18,7 +18,7 @@ use winapi::{
 		},
 	},
 };
-use winsapi::{str_to_wide, Rect, Window};
+use winsapi::{str_to_wide, Rect, Window, Monitor};
 
 /// Draw's the grid selection window
 pub fn spawn_grid_window(close_msg: Receiver<()>) {
@@ -37,7 +37,7 @@ pub fn spawn_grid_window(close_msg: Receiver<()>) {
 
 		RegisterClassExW(&class);
 
-		let work_area = get_work_area();
+		let work_area = Monitor::get_active().area();
 		let dimensions = INSTANCE.get_mut().unwrap().grid.dimensions();
 
 		let hwnd = CreateWindowExW(

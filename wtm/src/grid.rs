@@ -3,12 +3,12 @@
 // mod config;
 mod tile;
 
-use crate::{config::Config, util::get_work_area};
+use crate::config::Config;
 // use config::*;
 use std::mem;
 use tile::*;
 use winapi::um::winuser::{BeginPaint, EndPaint, PAINTSTRUCT};
-use winsapi::{Rect, Window};
+use winsapi::{Monitor, Rect, Window};
 
 //TODO document this better
 /// The grid!
@@ -84,7 +84,7 @@ impl Grid {
 	}
 
 	fn zone_area(&self, row: usize, column: usize) -> Rect {
-		let work_area = unsafe { get_work_area() };
+		let work_area = Monitor::get_active().area();
 
 		let zone_width = (work_area.w
 			- self.border_margins as i32 * 2
@@ -167,7 +167,7 @@ impl Grid {
 
 	/// Recenters the grid window after the a new row or column is added
 	pub fn reposition(&mut self) {
-		let work_area = unsafe { get_work_area() };
+		let work_area = Monitor::get_active().area();
 		let dimensions = self.dimensions();
 
 		let rect = Rect {

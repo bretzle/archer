@@ -10,7 +10,6 @@ mod config;
 mod event;
 mod grid;
 mod hotkey;
-mod util;
 mod window;
 
 use crate::{

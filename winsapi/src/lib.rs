@@ -5,6 +5,7 @@ mod font;
 mod internal;
 mod keyboard;
 mod macros;
+mod monitor;
 mod rect;
 mod window;
 
@@ -14,5 +15,6 @@ pub use event::EventChannel;
 pub use font::*;
 pub use keyboard::*;
 pub use macros::*;
+pub use monitor::*;
 pub use rect::*;
 pub use window::*;
