@@ -16,7 +16,7 @@ use winapi::{
 		},
 	},
 };
-use winsapi::{Rect, Window, Monitor};
+use winsapi::{Monitor, Rect, Window};
 
 /// Messages that are sent over [CHANNEL](../struct.CHANNEL.html)
 #[derive(Debug, Copy, Clone)]

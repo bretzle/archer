@@ -18,7 +18,7 @@ use winapi::{
 		},
 	},
 };
-use winsapi::{str_to_wide, Rect, Window, Monitor};
+use winsapi::{str_to_wide, Monitor, Rect, Window};
 
 /// Draw's the grid selection window
 pub fn spawn_grid_window(close_msg: Receiver<()>) {

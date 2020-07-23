@@ -3,9 +3,6 @@
 //!
 //! A simple tiling manager that works natively for Windows
 
-#[macro_use]
-extern crate log;
-
 mod config;
 mod event;
 mod grid;
@@ -14,13 +11,12 @@ mod window;
 
 use crate::{
 	config::Config,
-	event::{spawn_foreground_hook, spawn_track_monitor_thread},
+	event::{spawn_foreground_hook, spawn_track_monitor_thread, Event},
 	grid::Grid,
+	hotkey::HotkeyType::{Main, QuickResize},
 	window::{spawn_grid_window, spawn_preview_window},
 };
 use crossbeam_channel::{bounded, select};
-use event::Event;
-use hotkey::HotkeyType::{Main, QuickResize};
 use once_cell::sync::OnceCell;
 use std::mem;
 use winapi::um::winuser::{
@@ -83,7 +79,7 @@ fn run() {
 	let mut grid_window: Option<Window> = None;
 	let mut track_mouse = false;
 
-	info!("{:#?}", config);
+	log::info!("{:#?}", config);
 
 	loop {
 		select! {
