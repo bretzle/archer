@@ -19,7 +19,7 @@ use winapi::{
 use winsapi::{Rect, Window, Monitor};
 
 /// Messages that are sent over [CHANNEL](../struct.CHANNEL.html)
-#[derive(Debug)]
+#[derive(Debug, Copy, Clone)]
 pub enum Event {
 	///
 	PreviewWindow(Window),

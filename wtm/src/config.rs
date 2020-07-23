@@ -1,7 +1,5 @@
 //! Wtm's Config implementation
 
-use crate::hotkey::{HotkeyType, Keybind};
-
 /// Wtm's Config
 #[derive(Debug, Clone)]
 pub struct Config {
@@ -11,8 +9,6 @@ pub struct Config {
 	pub padding: u8,
 	/// Should the program start automatically
 	pub auto_start: bool,
-	/// A vector of keybinds
-	pub keybinds: Vec<Keybind>,
 }
 
 impl Default for Config {
@@ -21,16 +17,6 @@ impl Default for Config {
 			margin: 10,
 			padding: 10,
 			auto_start: false,
-			keybinds: vec![
-				Keybind {
-					hotkey: String::from("CTRL+ALT+S"),
-					typ: HotkeyType::Main,
-				},
-				Keybind {
-					hotkey: String::from("CTRL+ALT+Q"),
-					typ: HotkeyType::QuickResize,
-				},
-			],
 		}
 	}
 }

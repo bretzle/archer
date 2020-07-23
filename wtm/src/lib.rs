@@ -16,17 +16,17 @@ use crate::{
 	config::Config,
 	event::{spawn_foreground_hook, spawn_track_monitor_thread},
 	grid::Grid,
-	hotkey::spawn_hotkey_thread,
 	window::{spawn_grid_window, spawn_preview_window},
 };
 use crossbeam_channel::{bounded, select};
 use event::Event;
+use hotkey::HotkeyType::{Main, QuickResize};
 use once_cell::sync::OnceCell;
 use std::mem;
 use winapi::um::winuser::{
 	SetForegroundWindow, ShowWindow, TrackMouseEvent, SW_SHOW, TME_LEAVE, TRACKMOUSEEVENT,
 };
-use winsapi::{EventChannel, Window};
+use winsapi::{EventChannel, GlobalHotkeySet, Key, Modifier, Window};
 
 static mut INSTANCE: OnceCell<TilingManager> = OnceCell::new();
 
@@ -67,9 +67,17 @@ fn run() {
 
 	let close_channel = bounded::<()>(3);
 
-	for keybind in &config.keybinds {
-		spawn_hotkey_thread(&keybind.hotkey, keybind.typ);
-	}
+	let hotkeys = GlobalHotkeySet::new()
+		.add_global_hotkey(
+			Event::HotkeyPressed(QuickResize),
+			Modifier::Ctrl + Modifier::Alt + Key::Q,
+		)
+		.add_global_hotkey(
+			Event::HotkeyPressed(Main),
+			Modifier::Ctrl + Modifier::Alt + Key::S,
+		);
+
+	channel.listen_for_hotkeys(hotkeys);
 
 	let mut preview_window: Option<Window> = None;
 	let mut grid_window: Option<Window> = None;
