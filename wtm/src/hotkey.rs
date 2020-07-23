@@ -1,12 +1,13 @@
 //! Hotkey module
 
-use crate::{util::report_and_exit, window::Window, Message, INSTANCE};
+use crate::{util::report_and_exit, Message, INSTANCE};
 use crossbeam_channel::Sender;
 use std::{mem, ptr, thread};
 use winapi::um::winuser::{
 	DispatchMessageW, GetKeyboardLayout, GetMessageW, RegisterHotKey, TranslateMessage,
 	VkKeyScanExW, MOD_ALT, MOD_CONTROL, MOD_NOREPEAT, MOD_SHIFT, MOD_WIN, WM_HOTKEY,
 };
+use winsapi::Window;
 
 /// The Commands that a keybind can execute
 #[derive(PartialEq, Clone, Copy, Debug)]

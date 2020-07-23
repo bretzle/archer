@@ -1,8 +1,6 @@
 //! Utility module
 
-mod rect;
-
-use crate::{hotkey::HotkeyType, str_to_wide, window::Window};
+use crate::{hotkey::HotkeyType, str_to_wide};
 use std::{error::Error, mem, process, ptr};
 use winapi::{
 	shared::windef::POINT,
@@ -11,8 +9,7 @@ use winapi::{
 		MONITORINFOEXW, MONITOR_DEFAULTTONEAREST,
 	},
 };
-
-pub use rect::Rect;
+use winsapi::{Rect, Window};
 
 /// Custom Result re-export
 pub type Result<T = (), E = Box<dyn Error>> = std::result::Result<T, E>;

@@ -1,9 +1,4 @@
-use crate::{
-	str_to_wide,
-	util::{get_work_area, Rect},
-	window::Window,
-	Message, INSTANCE,
-};
+use crate::{str_to_wide, util::get_work_area, Message, INSTANCE};
 use crossbeam_channel::{select, Receiver};
 use std::{mem, ptr, thread, time::Duration};
 use winapi::{
@@ -23,6 +18,7 @@ use winapi::{
 		},
 	},
 };
+use winsapi::{Rect, Window};
 
 /// Draw's the grid selection window
 pub fn spawn_grid_window(close_msg: Receiver<()>) {
@@ -49,8 +45,8 @@ pub fn spawn_grid_window(close_msg: Receiver<()>) {
 			class_name.as_ptr(),
 			ptr::null(),
 			WS_POPUP,
-			work_area.width / 2 - dimensions.0 as i32 / 2 + work_area.x,
-			work_area.height / 2 - dimensions.1 as i32 / 2 + work_area.y,
+			work_area.w / 2 - dimensions.0 as i32 / 2 + work_area.x,
+			work_area.h / 2 - dimensions.1 as i32 / 2 + work_area.y,
 			dimensions.0 as i32,
 			dimensions.1 as i32,
 			ptr::null_mut(),
@@ -181,9 +177,7 @@ unsafe extern "system" fn callback(
 
 			let _ = sender.send(Message::TrackMouse(Window(hwnd)));
 
-			if let Some(rect) =
-				INSTANCE.get_mut().unwrap().grid.highlight_tiles((x, y))
-			{
+			if let Some(rect) = INSTANCE.get_mut().unwrap().grid.highlight_tiles((x, y)) {
 				let _ = sender.send(Message::HighlightZone(rect));
 
 				true
@@ -250,8 +244,8 @@ unsafe extern "system" fn callback(
 		let rect = Rect {
 			x: 0,
 			y: 0,
-			width: dimensions.0 as i32,
-			height: dimensions.1 as i32,
+			w: dimensions.0 as i32,
+			h: dimensions.1 as i32,
 		};
 
 		InvalidateRect(hwnd, &rect.into(), 0);

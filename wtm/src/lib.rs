@@ -19,7 +19,7 @@ use crate::{
 	grid::Grid,
 	hotkey::spawn_hotkey_thread,
 	util::{get_foreground_window, Message, Result},
-	window::{spawn_grid_window, spawn_preview_window, Window},
+	window::{spawn_grid_window, spawn_preview_window},
 };
 use crossbeam_channel::{bounded, select};
 use once_cell::sync::OnceCell;
@@ -27,7 +27,7 @@ use std::mem;
 use winapi::um::winuser::{
 	SetForegroundWindow, ShowWindow, TrackMouseEvent, SW_SHOW, TME_LEAVE, TRACKMOUSEEVENT,
 };
-use winsapi::EventChannel;
+use winsapi::{EventChannel, Window};
 
 static mut INSTANCE: OnceCell<TilingManager> = OnceCell::new();
 

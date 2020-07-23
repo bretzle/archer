@@ -3,15 +3,12 @@
 // mod config;
 mod tile;
 
-use crate::{
-	config::Config,
-	util::{get_work_area, Rect},
-	window::Window,
-};
+use crate::{config::Config, util::get_work_area};
 // use config::*;
 use std::mem;
 use tile::*;
 use winapi::um::winuser::{BeginPaint, EndPaint, PAINTSTRUCT};
+use winsapi::{Rect, Window};
 
 //TODO document this better
 /// The grid!
@@ -39,8 +36,6 @@ pub struct Grid {
 	zone_margins: u8,
 	border_margins: u8,
 	tiles: Vec<Vec<Tile>>, // tiles[row][column]
-	// active_config: GridConfigKey,
-	// configs: GridConfigs,
 }
 
 impl Grid {
@@ -91,11 +86,11 @@ impl Grid {
 	fn zone_area(&self, row: usize, column: usize) -> Rect {
 		let work_area = unsafe { get_work_area() };
 
-		let zone_width = (work_area.width
+		let zone_width = (work_area.w
 			- self.border_margins as i32 * 2
 			- (self.columns() - 1) as i32 * self.zone_margins as i32)
 			/ self.columns() as i32;
-		let zone_height = (work_area.height
+		let zone_height = (work_area.h
 			- self.border_margins as i32 * 2
 			- (self.rows() - 1) as i32 * self.zone_margins as i32)
 			/ self.rows() as i32;
@@ -112,8 +107,8 @@ impl Grid {
 		Rect {
 			x,
 			y,
-			width: zone_width,
-			height: zone_height,
+			w: zone_width,
+			h: zone_height,
 		}
 	}
 
@@ -165,8 +160,8 @@ impl Grid {
 		Rect {
 			x,
 			y,
-			width: TILE_WIDTH as i32,
-			height: TILE_HEIGHT as i32,
+			w: TILE_WIDTH as i32,
+			h: TILE_HEIGHT as i32,
 		}
 	}
 
@@ -176,10 +171,10 @@ impl Grid {
 		let dimensions = self.dimensions();
 
 		let rect = Rect {
-			x: work_area.width / 2 - dimensions.0 as i32 / 2 + work_area.x,
-			y: work_area.height / 2 - dimensions.1 as i32 / 2 + work_area.y,
-			width: dimensions.0 as i32,
-			height: dimensions.1 as i32,
+			x: work_area.w / 2 - dimensions.0 as i32 / 2 + work_area.x,
+			y: work_area.h / 2 - dimensions.1 as i32 / 2 + work_area.y,
+			w: dimensions.0 as i32,
+			h: dimensions.1 as i32,
 		};
 
 		self.grid_window.as_mut().unwrap().set_pos(rect, None);
@@ -238,8 +233,8 @@ impl Grid {
 						Rect {
 							x: from_zone.x,
 							y: from_zone.y,
-							width: (to_zone.x + to_zone.width) - from_zone.x,
-							height: (to_zone.y + to_zone.height) - from_zone.y,
+							w: (to_zone.x + to_zone.w) - from_zone.x,
+							h: (to_zone.y + to_zone.h) - from_zone.y,
 						}
 					} else if hovered_zone.y < selected_zone.y && hovered_zone.x > selected_zone.x {
 						from_tile = (hovered_tile.0, selected_tile.1);
@@ -251,8 +246,8 @@ impl Grid {
 						Rect {
 							x: from_zone.x,
 							y: from_zone.y,
-							width: (to_zone.x + to_zone.width) - from_zone.x,
-							height: (to_zone.y + to_zone.height) - from_zone.y,
+							w: (to_zone.x + to_zone.w) - from_zone.x,
+							h: (to_zone.y + to_zone.h) - from_zone.y,
 						}
 					} else if hovered_zone.x > selected_zone.x || hovered_zone.y > selected_zone.y {
 						from_tile = selected_tile;
@@ -261,8 +256,8 @@ impl Grid {
 						Rect {
 							x: selected_zone.x,
 							y: selected_zone.y,
-							width: (hovered_zone.x + hovered_zone.width) - selected_zone.x,
-							height: (hovered_zone.y + hovered_zone.height) - selected_zone.y,
+							w: (hovered_zone.x + hovered_zone.w) - selected_zone.x,
+							h: (hovered_zone.y + hovered_zone.h) - selected_zone.y,
 						}
 					} else {
 						from_tile = hovered_tile;
@@ -271,8 +266,8 @@ impl Grid {
 						Rect {
 							x: hovered_zone.x,
 							y: hovered_zone.y,
-							width: (selected_zone.x + selected_zone.width) - hovered_zone.x,
-							height: (selected_zone.y + selected_zone.height) - hovered_zone.y,
+							w: (selected_zone.x + selected_zone.w) - hovered_zone.x,
+							h: (selected_zone.y + selected_zone.h) - hovered_zone.y,
 						}
 					};
 
@@ -325,8 +320,8 @@ impl Grid {
 		Rect {
 			x: from_zone.x,
 			y: from_zone.y,
-			width: (to_zone.x + to_zone.width) - from_zone.x,
-			height: (to_zone.y + to_zone.height) - from_zone.y,
+			w: (to_zone.x + to_zone.w) - from_zone.x,
+			h: (to_zone.y + to_zone.h) - from_zone.y,
 		}
 	}
 

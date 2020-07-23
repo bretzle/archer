@@ -1,4 +1,4 @@
-use crate::{str_to_wide, window::Window, Message, INSTANCE};
+use crate::{str_to_wide, Message, INSTANCE};
 use crossbeam_channel::{select, Receiver};
 use std::{mem, ptr, thread, time::Duration};
 use winapi::{
@@ -16,6 +16,7 @@ use winapi::{
 		},
 	},
 };
+use winsapi::Window;
 
 /// Draw's a blue preview over the highlighted part of the grid
 pub fn spawn_preview_window(close_msg: Receiver<()>) {

@@ -1,6 +1,6 @@
 //! Event module
 
-use crate::{util::get_active_monitor_name, window::Window, Message, INSTANCE};
+use crate::{util::get_active_monitor_name, Message, INSTANCE};
 use crossbeam_channel::{select, Receiver};
 use std::{mem, ptr, thread, time::Duration};
 use winapi::{
@@ -16,6 +16,7 @@ use winapi::{
 		},
 	},
 };
+use winsapi::Window;
 
 // TODO figure out what this does
 ///

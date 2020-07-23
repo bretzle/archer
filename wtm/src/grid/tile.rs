@@ -1,4 +1,3 @@
-use crate::util::Rect;
 use winapi::{
 	shared::windef::{HBRUSH, HDC},
 	um::{
@@ -6,6 +5,7 @@ use winapi::{
 		winuser::{FillRect, FrameRect},
 	},
 };
+use winsapi::Rect;
 
 pub(super) const TILE_WIDTH: u32 = 48;
 pub(super) const TILE_HEIGHT: u32 = 48;
