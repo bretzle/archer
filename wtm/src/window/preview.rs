@@ -20,14 +20,14 @@ use winapi::{
 /// Draw's a blue preview over the highlighted part of the grid
 pub fn spawn_preview_window(close_msg: Receiver<()>) {
 	thread::spawn(move || unsafe {
-		let hInstance = GetModuleHandleW(ptr::null());
+		let h_instance = GetModuleHandleW(ptr::null());
 
 		let class_name = str_to_wide!("Wtm Zone Preview");
 
 		let mut class = mem::zeroed::<WNDCLASSEXW>();
 		class.cbSize = mem::size_of::<WNDCLASSEXW>() as u32;
 		class.lpfnWndProc = Some(callback);
-		class.hInstance = hInstance;
+		class.hInstance = h_instance;
 		class.lpszClassName = class_name.as_ptr();
 		class.hbrBackground = CreateSolidBrush(RGB(0, 77, 128));
 
@@ -44,7 +44,7 @@ pub fn spawn_preview_window(close_msg: Receiver<()>) {
 			0,
 			ptr::null_mut(),
 			ptr::null_mut(),
-			hInstance,
+			h_instance,
 			ptr::null_mut(),
 		);
 
@@ -70,10 +70,10 @@ pub fn spawn_preview_window(close_msg: Receiver<()>) {
 }
 
 unsafe extern "system" fn callback(
-	hWnd: HWND,
-	Msg: UINT,
-	wParam: WPARAM,
-	lParam: LPARAM,
+	hwnd: HWND,
+	msg: UINT,
+	wparam: WPARAM,
+	lparam: LPARAM,
 ) -> LRESULT {
-	DefWindowProcW(hWnd, Msg, wParam, lParam)
+	DefWindowProcW(hwnd, msg, wparam, lparam)
 }

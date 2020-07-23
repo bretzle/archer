@@ -73,13 +73,13 @@ pub fn spawn_track_monitor_thread(close_msg: Receiver<()>) {
 }
 
 unsafe extern "system" fn callback(
-	_hWinEventHook: HWINEVENTHOOK,
+	_: HWINEVENTHOOK,
 	_event: DWORD,
 	hwnd: HWND,
-	_idObject: LONG,
-	_idChild: LONG,
-	_idEventThread: DWORD,
-	_dwmsEventTime: DWORD,
+	_: LONG,
+	_: LONG,
+	_: DWORD,
+	_: DWORD,
 ) {
 	let sender = &CHANNEL.0.clone();
 	let _ = sender.send(Message::ActiveWindowChange(Window(hwnd)));

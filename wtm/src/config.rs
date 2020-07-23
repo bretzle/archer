@@ -1,6 +1,9 @@
 //! Wtm's Config implementation
 
-use crate::{hotkey::HotkeyType, hotkey::Keybind, Result};
+use crate::{
+	hotkey::{HotkeyType, Keybind},
+	Result,
+};
 
 /// Wtm's Config
 #[derive(Debug, Clone)]

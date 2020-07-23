@@ -27,14 +27,14 @@ use winapi::{
 /// Draw's the grid selection window
 pub fn spawn_grid_window(close_msg: Receiver<()>) {
 	thread::spawn(move || unsafe {
-		let hInstance = GetModuleHandleW(ptr::null());
+		let h_instance = GetModuleHandleW(ptr::null());
 
 		let class_name = str_to_wide!("Wtm Zone Grid");
 
 		let mut class = mem::zeroed::<WNDCLASSEXW>();
 		class.cbSize = mem::size_of::<WNDCLASSEXW>() as u32;
 		class.lpfnWndProc = Some(callback);
-		class.hInstance = hInstance;
+		class.hInstance = h_instance;
 		class.lpszClassName = class_name.as_ptr();
 		class.hbrBackground = CreateSolidBrush(RGB(44, 44, 44));
 		class.hCursor = LoadCursorW(ptr::null_mut(), IDC_ARROW);
@@ -55,7 +55,7 @@ pub fn spawn_grid_window(close_msg: Receiver<()>) {
 			dimensions.1 as i32,
 			ptr::null_mut(),
 			ptr::null_mut(),
-			hInstance,
+			h_instance,
 			ptr::null_mut(),
 		);
 
@@ -79,19 +79,19 @@ pub fn spawn_grid_window(close_msg: Receiver<()>) {
 }
 
 unsafe extern "system" fn callback(
-	hWnd: HWND,
-	Msg: UINT,
-	wParam: WPARAM,
-	lParam: LPARAM,
+	hwnd: HWND,
+	msg: UINT,
+	wparam: WPARAM,
+	lparam: LPARAM,
 ) -> LRESULT {
 	let sender = &CHANNEL.0.clone();
 
-	let repaint = match Msg {
+	let repaint = match msg {
 		WM_PAINT => {
-			GRID.lock().unwrap().draw(Window(hWnd));
+			GRID.lock().unwrap().draw(Window(hwnd));
 			false
 		}
-		WM_KEYDOWN => match wParam as i32 {
+		WM_KEYDOWN => match wparam as i32 {
 			VK_ESCAPE => {
 				let _ = sender.send(Message::CloseWindows);
 				false
@@ -134,7 +134,7 @@ unsafe extern "system" fn callback(
 			}
 			_ => false,
 		},
-		WM_KEYUP => match wParam as i32 {
+		WM_KEYUP => match wparam as i32 {
 			VK_CONTROL => {
 				GRID.lock().unwrap().control_down = false;
 				false
@@ -170,10 +170,10 @@ unsafe extern "system" fn callback(
 			_ => false,
 		},
 		WM_MOUSEMOVE => {
-			let x = LOWORD(lParam as u32) as i32;
-			let y = HIWORD(lParam as u32) as i32;
+			let x = LOWORD(lparam as u32) as i32;
+			let y = HIWORD(lparam as u32) as i32;
 
-			let _ = sender.send(Message::TrackMouse(Window(hWnd)));
+			let _ = sender.send(Message::TrackMouse(Window(hwnd)));
 
 			if let Some(rect) = GRID.lock().unwrap().highlight_tiles((x, y)) {
 				let _ = sender.send(Message::HighlightZone(rect));
@@ -184,8 +184,8 @@ unsafe extern "system" fn callback(
 			}
 		}
 		WM_LBUTTONDOWN => {
-			let x = LOWORD(lParam as u32) as i32;
-			let y = HIWORD(lParam as u32) as i32;
+			let x = LOWORD(lparam as u32) as i32;
+			let y = HIWORD(lparam as u32) as i32;
 
 			let mut grid = GRID.lock().unwrap();
 
@@ -246,9 +246,9 @@ unsafe extern "system" fn callback(
 			height: dimensions.1 as i32,
 		};
 
-		InvalidateRect(hWnd, &rect.into(), 0);
-		SendMessageW(hWnd, WM_PAINT, 0, 0);
+		InvalidateRect(hwnd, &rect.into(), 0);
+		SendMessageW(hwnd, WM_PAINT, 0, 0);
 	}
 
-	DefWindowProcW(hWnd, Msg, wParam, lParam)
+	DefWindowProcW(hwnd, msg, wparam, lparam)
 }
