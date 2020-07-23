@@ -14,8 +14,3 @@ winsapi = { path = "../winsapi" }
 [dependencies.winapi]
 version = "0.3.9"
 features = ["winuser", "impl-default", "windowsx", "libloaderapi"]
-
-[dev-dependencies.simple_logger]
-version = "1.6.0"
-default-features = false
-features = ["colored"]

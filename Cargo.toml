@@ -3,4 +3,10 @@ members = [
 	"polybar",
 	"winsapi",
 	"wtm",
+	"archer",
 ]
+
+[profile.release]
+lto = true
+codegen-units = 1
+panic = 'abort'

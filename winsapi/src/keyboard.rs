@@ -1,5 +1,4 @@
 use crate::internal::ReturnValue;
-use num_enum::IntoPrimitive;
 use std::{collections::HashMap, io, mem::MaybeUninit, ops::Add, ptr, sync::mpsc, thread};
 use winapi::{
 	ctypes::c_int,
@@ -124,7 +123,7 @@ impl<ID> Drop for GlobalHotkeySet<ID> {
 }
 
 /// Non-modifier key usable for hotkeys.
-#[derive(IntoPrimitive, Copy, Clone, Eq, PartialEq, Hash, Debug)]
+#[derive(Copy, Clone, Eq, PartialEq, Hash, Debug)]
 #[repr(i32)]
 pub enum Key {
 	Backspace = VK_BACK,
@@ -257,7 +256,7 @@ pub enum Key {
 }
 
 /// Modifier key than cannot be used by itself for hotkeys.
-#[derive(IntoPrimitive, Copy, Clone, Eq, PartialEq)]
+#[derive(Copy, Clone, Eq, PartialEq)]
 #[repr(isize)]
 pub enum Modifier {
 	Alt = MOD_ALT,
@@ -289,7 +288,7 @@ impl KeyCombination {
 
 impl From<Modifier> for ModifierCombination {
 	fn from(modifier: Modifier) -> Self {
-		ModifierCombination(modifier.into())
+		ModifierCombination(modifier as isize)
 	}
 }
 
@@ -343,7 +342,7 @@ fn register_hotkey<ID>(id: i32, hotkey: &HotkeyDef<ID>) -> io::Result<i32> {
 			ptr::null_mut(),
 			id,
 			hotkey.key_combination.modifiers.0 as UINT,
-			c_int::from(hotkey.key_combination.key) as UINT,
+			hotkey.key_combination.key as UINT,
 		)
 		.if_null_get_last_error()
 	}

@@ -18,7 +18,6 @@ pub mod config;
 pub mod event;
 pub mod grid;
 pub mod hotkey;
-pub mod logging;
 pub mod tray;
 pub mod util;
 pub mod window;
@@ -55,8 +54,6 @@ lazy_static! {
 
 /// Runs the program
 pub fn run() -> Result {
-	logging::setup()?;
-
 	let receiver = &CHANNEL.1.clone();
 	let sender = &CHANNEL.0.clone();
 
@@ -67,20 +64,6 @@ pub fn run() -> Result {
 	unsafe {
 		autostart::toggle_autostart_registry_key(config.auto_start);
 	}
-
-	// spawn_hotkey_thread(&config.hotkey, HotkeyType::Main);
-
-	// if let Some(hotkey) = &config.hotkey_quick_resize {
-	// 	spawn_hotkey_thread(hotkey, HotkeyType::QuickResize);
-	// }
-
-	// if let Some(hotkey_maximize) = &config.hotkey_maximize_toggle {
-	// 	spawn_hotkey_thread(hotkey_maximize, HotkeyType::Maximize);
-	// }
-
-	// if let Some(hotkey_minimize) = &config.hotkey_minimize {
-	// 	spawn_hotkey_thread(hotkey_minimize, HotkeyType::Minimize);
-	// }
 
 	for keybind in &config.keybinds {
 		spawn_hotkey_thread(&keybind.hotkey, keybind.typ);

@@ -1,11 +1,8 @@
-use crate::{internal::RawHandle, Rect};
-use std::{mem, ptr};
+use crate::Rect;
+use std::ptr;
 use winapi::{
 	shared::windef::HWND,
-	um::winuser::{
-		GetForegroundWindow, GetWindowInfo, GetWindowRect, SetWindowPos, ShowWindow,
-		SWP_NOACTIVATE, SW_MINIMIZE, SW_RESTORE, WINDOWINFO,
-	},
+	um::winuser::{GetForegroundWindow, SetWindowPos, SWP_NOACTIVATE},
 };
 
 #[derive(Debug, Copy, Clone)]
