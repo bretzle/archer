@@ -29,14 +29,13 @@ use winapi::um::winuser::{
 };
 use winsapi::EventChannel;
 
-static mut GRID: OnceCell<Grid> = OnceCell::new();
-
 static mut INSTANCE: OnceCell<TilingManager> = OnceCell::new();
 
 #[derive(Debug, Default)]
 pub struct TilingManager {
 	config: Config,
 	channel: EventChannel<Message>,
+	grid: Grid,
 }
 
 impl TilingManager {
@@ -61,10 +60,7 @@ impl TilingManager {
 pub fn run() -> Result {
 	let config = unsafe { &INSTANCE.get().unwrap().config };
 	let channel = unsafe { &INSTANCE.get().unwrap().channel };
-	let mut grid = unsafe {
-		GRID.set(Grid::from(config)).unwrap();
-		GRID.get_mut().unwrap()
-	};
+	let mut grid = unsafe { &mut INSTANCE.get_mut().unwrap().grid };
 
 	let receiver = channel.receiver.clone();
 	let sender = channel.sender.clone();
@@ -96,7 +92,7 @@ pub fn run() -> Result {
 					Message::GridWindow(window) => {
 						grid_window = Some(window);
 
-						let mut grid = unsafe{GRID.get_mut().unwrap()};
+						let mut grid = unsafe{&mut INSTANCE.get_mut().unwrap().grid};
 
 						grid.grid_window = Some(window);
 						grid.active_window = Some(get_foreground_window());
@@ -129,14 +125,14 @@ pub fn run() -> Result {
 						track_mouse = false;
 					}
 					Message::ActiveWindowChange(window) => {
-						let mut grid = unsafe{GRID.get_mut().unwrap()};
+						let mut grid = unsafe{&mut INSTANCE.get_mut().unwrap().grid};
 
 						if grid.grid_window != Some(window) && grid.active_window != Some(window) {
 							grid.active_window = Some(window);
 						}
 					}
 					Message::MonitorChange => {
-						let mut grid = unsafe{GRID.get_mut().unwrap()};
+						let mut grid = unsafe{&mut INSTANCE.get_mut().unwrap().grid};
 
 						let active_window = grid.active_window;
 						let previous_resize = grid.previous_resize;
@@ -176,13 +172,8 @@ pub fn run() -> Result {
 						grid.reset();
 						track_mouse = false;
 					}
-					Message::Exit => {
-						break;
-					}
 				}
 			}
 		}
 	}
-
-	Ok(())
 }

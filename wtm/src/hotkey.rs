@@ -1,10 +1,6 @@
 //! Hotkey module
 
-use crate::{
-	util::{get_foreground_window, report_and_exit},
-	window::Window,
-	Message, GRID, INSTANCE,
-};
+use crate::{util::report_and_exit, window::Window, Message, INSTANCE};
 use crossbeam_channel::Sender;
 use std::{mem, ptr, thread};
 use winapi::um::winuser::{
@@ -19,10 +15,6 @@ pub enum HotkeyType {
 	Main,
 	/// Quick Resize the current window
 	QuickResize,
-	/// Maximizes the current window
-	Maximize,
-	/// Minimizes the current window
-	Minimize,
 }
 
 /// A keybind
@@ -111,37 +103,6 @@ pub fn handle(
 	grid_window: &Option<Window>,
 ) {
 	match hotkey {
-		HotkeyType::Minimize => get_foreground_window().minimize(),
-		HotkeyType::Maximize => {
-			let mut grid = unsafe { GRID.get_mut().unwrap() };
-
-			let mut active_window = if grid_window.is_some() {
-				grid.active_window.unwrap()
-			} else {
-				let active_window = get_foreground_window();
-				grid.active_window = Some(active_window);
-				active_window
-			};
-
-			let active_rect = active_window.rect();
-
-			active_window.restore();
-
-			let mut max_rect = grid.get_max_area();
-			max_rect.adjust_for_border(active_window.transparent_border());
-
-			if let Some((_, previous_rect)) = grid.previous_resize {
-				if active_rect == max_rect {
-					active_window.set_pos(previous_rect, None);
-				} else {
-					active_window.set_pos(max_rect, None);
-				}
-			} else {
-				active_window.set_pos(max_rect, None);
-			}
-
-			grid.previous_resize = Some((active_window, active_rect));
-		}
 		HotkeyType::Main => {
 			if preview_window.is_some() && grid_window.is_some() {
 				let _ = sender.send(Message::CloseWindows);
@@ -151,7 +112,7 @@ pub fn handle(
 		}
 		HotkeyType::QuickResize => {
 			let _ = sender.send(Message::InitializeWindows);
-			unsafe { GRID.get_mut().unwrap().quick_resize = true };
+			unsafe { INSTANCE.get_mut().unwrap().grid.quick_resize = true };
 		}
 	}
 }

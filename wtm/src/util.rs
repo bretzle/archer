@@ -42,8 +42,6 @@ pub enum Message {
 	InitializeWindows,
 	/// Close the windows drawn by wtm
 	CloseWindows,
-	/// Exit the program
-	Exit,
 }
 
 /// Converts a str to the format that the windows api uses
