@@ -1,0 +1,19 @@
+auto_start = false
+margin     = 10
+padding    = 10
+
+[[keybinds]]
+hotkey = "CTRL+ALT+S"
+type   = "Main"
+
+[[keybinds]]
+hotkey = "CTRL+ALT+X"
+type   = "Maximize"
+
+[[keybinds]]
+hotkey = "CTRL+ALT+M"
+type   = "Minimize"
+
+[[keybinds]]
+hotkey = "CTRL+ALT+Q"
+type   = "QuickResize"
