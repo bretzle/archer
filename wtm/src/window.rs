@@ -21,6 +21,7 @@ mod preview;
 pub struct Window(pub HWND);
 
 unsafe impl Send for Window {}
+unsafe impl Sync for Window {}
 
 impl Window {
 	/// Get's the location of the window

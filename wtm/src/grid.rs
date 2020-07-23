@@ -15,6 +15,7 @@ use winapi::um::winuser::{BeginPaint, EndPaint, PAINTSTRUCT};
 
 //TODO document this better
 /// The grid!
+#[derive(Debug)]
 pub struct Grid {
 	/// is the Shift key down
 	pub shift_down: bool,

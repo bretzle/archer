@@ -50,7 +50,7 @@ pub fn spawn_preview_window(close_msg: Receiver<()>) {
 
 		SetLayeredWindowAttributes(hwnd, 0, 107, LWA_ALPHA);
 
-		let _ = &CHANNEL.0.clone().send(Message::PreviewWindow(Window(hwnd)));
+		let _ = CHANNEL.get().unwrap().0.clone().send(Message::PreviewWindow(Window(hwnd)));
 
 		let mut msg = mem::zeroed();
 		loop {

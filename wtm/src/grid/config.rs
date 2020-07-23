@@ -25,7 +25,7 @@ pub struct GridConfigKey {
 impl Default for GridConfigKey {
 	fn default() -> Self {
 		let monitor = unsafe { get_active_monitor_name() };
-		let profile = ACTIVE_PROFILE.lock().unwrap().clone();
+		let profile = ACTIVE_PROFILE.get().unwrap().clone();
 
 		GridConfigKey { monitor, profile }
 	}

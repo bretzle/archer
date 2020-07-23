@@ -42,7 +42,7 @@ pub fn spawn_grid_window(close_msg: Receiver<()>) {
 		RegisterClassExW(&class);
 
 		let work_area = get_work_area();
-		let dimensions = GRID.lock().unwrap().dimensions();
+		let dimensions = GRID.get().unwrap().dimensions();
 
 		let hwnd = CreateWindowExW(
 			WS_EX_TOPMOST | WS_EX_TOOLWINDOW,
@@ -59,7 +59,7 @@ pub fn spawn_grid_window(close_msg: Receiver<()>) {
 			ptr::null_mut(),
 		);
 
-		let _ = &CHANNEL.0.clone().send(Message::GridWindow(Window(hwnd)));
+		let _ = CHANNEL.get().unwrap().0.clone().send(Message::GridWindow(Window(hwnd)));
 
 		let mut msg = mem::zeroed();
 		loop {
@@ -84,11 +84,11 @@ unsafe extern "system" fn callback(
 	wparam: WPARAM,
 	lparam: LPARAM,
 ) -> LRESULT {
-	let sender = &CHANNEL.0.clone();
+	let sender = CHANNEL.get().unwrap().0.clone();
 
 	let repaint = match msg {
 		WM_PAINT => {
-			GRID.lock().unwrap().draw(Window(hwnd));
+			GRID.get().unwrap().draw(Window(hwnd));
 			false
 		}
 		WM_KEYDOWN => match wparam as i32 {
@@ -97,38 +97,38 @@ unsafe extern "system" fn callback(
 				false
 			}
 			VK_CONTROL => {
-				GRID.lock().unwrap().control_down = true;
+				GRID.get_mut().unwrap().control_down = true;
 				false
 			}
 			VK_SHIFT => {
-				GRID.lock().unwrap().shift_down = true;
+				GRID.get_mut().unwrap().shift_down = true;
 				false
 			}
 			VK_RIGHT => {
-				if GRID.lock().unwrap().control_down {
-					GRID.lock().unwrap().add_column();
-					GRID.lock().unwrap().reposition();
+				if GRID.get().unwrap().control_down {
+					GRID.get_mut().unwrap().add_column();
+					GRID.get_mut().unwrap().reposition();
 				}
 				false
 			}
 			VK_LEFT => {
-				if GRID.lock().unwrap().control_down {
-					GRID.lock().unwrap().remove_column();
-					GRID.lock().unwrap().reposition();
+				if GRID.get().unwrap().control_down {
+					GRID.get_mut().unwrap().remove_column();
+					GRID.get_mut().unwrap().reposition();
 				}
 				false
 			}
 			VK_UP => {
-				if GRID.lock().unwrap().control_down {
-					GRID.lock().unwrap().add_row();
-					GRID.lock().unwrap().reposition();
+				if GRID.get().unwrap().control_down {
+					GRID.get_mut().unwrap().add_row();
+					GRID.get_mut().unwrap().reposition();
 				}
 				false
 			}
 			VK_DOWN => {
-				if GRID.lock().unwrap().control_down {
-					GRID.lock().unwrap().remove_row();
-					GRID.lock().unwrap().reposition();
+				if GRID.get().unwrap().control_down {
+					GRID.get_mut().unwrap().remove_row();
+					GRID.get_mut().unwrap().reposition();
 				}
 				false
 			}
@@ -136,11 +136,11 @@ unsafe extern "system" fn callback(
 		},
 		WM_KEYUP => match wparam as i32 {
 			VK_CONTROL => {
-				GRID.lock().unwrap().control_down = false;
+				GRID.get_mut().unwrap().control_down = false;
 				false
 			}
 			VK_SHIFT => {
-				GRID.lock().unwrap().shift_down = false;
+				GRID.get_mut().unwrap().shift_down = false;
 				false
 			}
 			VK_F1 => {
@@ -175,7 +175,7 @@ unsafe extern "system" fn callback(
 
 			let _ = sender.send(Message::TrackMouse(Window(hwnd)));
 
-			if let Some(rect) = GRID.lock().unwrap().highlight_tiles((x, y)) {
+			if let Some(rect) = GRID.get_mut().unwrap().highlight_tiles((x, y)) {
 				let _ = sender.send(Message::HighlightZone(rect));
 
 				true
@@ -187,7 +187,7 @@ unsafe extern "system" fn callback(
 			let x = LOWORD(lparam as u32) as i32;
 			let y = HIWORD(lparam as u32) as i32;
 
-			let mut grid = GRID.lock().unwrap();
+			let mut grid = GRID.get_mut().unwrap();
 
 			let repaint = grid.select_tile((x, y));
 
@@ -196,7 +196,7 @@ unsafe extern "system" fn callback(
 			repaint
 		}
 		WM_LBUTTONUP => {
-			let mut grid = GRID.lock().unwrap();
+			let mut grid = GRID.get_mut().unwrap();
 
 			let repaint = if let Some(mut rect) = grid.selected_area() {
 				if let Some(mut active_window) = grid.active_window {
@@ -227,7 +227,7 @@ unsafe extern "system" fn callback(
 			repaint
 		}
 		WM_MOUSELEAVE => {
-			GRID.lock().unwrap().unhighlight_all_tiles();
+			GRID.get_mut().unwrap().unhighlight_all_tiles();
 
 			let _ = sender.send(Message::MouseLeft);
 			let _ = sender.send(Message::HighlightZone(Rect::zero()));
@@ -238,7 +238,7 @@ unsafe extern "system" fn callback(
 	};
 
 	if repaint {
-		let dimensions = GRID.lock().unwrap().dimensions();
+		let dimensions = GRID.get().unwrap().dimensions();
 		let rect = Rect {
 			x: 0,
 			y: 0,

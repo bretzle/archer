@@ -53,7 +53,7 @@ pub fn spawn_hotkey_thread(hotkey_str: &str, hotkey_type: HotkeyType) {
 
 	let hotkey_str = hotkey_str.to_owned();
 	thread::spawn(move || unsafe {
-		let sender = &CHANNEL.0.clone();
+		let sender = CHANNEL.get().unwrap().0.clone();
 
 		let result = RegisterHotKey(
 			ptr::null_mut(),
@@ -113,7 +113,7 @@ pub fn handle(
 	match hotkey {
 		HotkeyType::Minimize => get_foreground_window().minimize(),
 		HotkeyType::Maximize => {
-			let mut grid = GRID.lock().unwrap();
+			let mut grid = unsafe { GRID.get_mut().unwrap() };
 
 			let mut active_window = if grid_window.is_some() {
 				grid.active_window.unwrap()
@@ -151,7 +151,7 @@ pub fn handle(
 		}
 		HotkeyType::QuickResize => {
 			let _ = sender.send(Message::InitializeWindows);
-			GRID.lock().unwrap().quick_resize = true;
+			unsafe { GRID.get_mut().unwrap().quick_resize = true };
 		}
 	}
 }

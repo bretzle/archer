@@ -10,7 +10,7 @@ use winapi::{
 pub(super) const TILE_WIDTH: u32 = 48;
 pub(super) const TILE_HEIGHT: u32 = 48;
 
-#[derive(Default, Clone, Copy, PartialEq)]
+#[derive(Debug, Default, Clone, Copy, PartialEq)]
 pub(super) struct Tile {
 	pub selected: bool,
 	pub hovered: bool,

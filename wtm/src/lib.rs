@@ -5,8 +5,6 @@
 
 #[macro_use]
 extern crate log;
-#[macro_use]
-extern crate lazy_static;
 
 pub mod config;
 pub mod event;
@@ -24,34 +22,31 @@ use crate::{
 	window::{spawn_grid_window, spawn_preview_window, Window},
 };
 use crossbeam_channel::{bounded, select, unbounded, Receiver, Sender};
-use std::{
-	mem,
-	sync::{Arc, Mutex},
-};
+use once_cell::sync::OnceCell;
+use std::mem;
 use winapi::um::winuser::{
 	SetForegroundWindow, ShowWindow, TrackMouseEvent, SW_SHOW, TME_LEAVE, TRACKMOUSEEVENT,
 };
 
-lazy_static! {
-	/// The global `Config` instance
-	pub static ref CONFIG: Arc<Mutex<Config>> = Arc::new(Mutex::new(Config::load().unwrap()));
-	/// The global channel used to send [Message](util.struct.Message.html]s
-	pub static ref CHANNEL: (Sender<Message>, Receiver<Message>) = unbounded();
-	/// The global `Grid` instance
-	pub static ref GRID: Arc<Mutex<Grid>> =
-		Arc::new(Mutex::new(Grid::from(&*CONFIG.lock().unwrap())));
-	/// The global Active profile
-	pub static ref ACTIVE_PROFILE: Arc<Mutex<String>> = Arc::new(Mutex::new("Default".to_owned()));
-}
+static CONFIG: OnceCell<Config> = OnceCell::new();
+static CHANNEL: OnceCell<(Sender<Message>, Receiver<Message>)> = OnceCell::new();
+static mut GRID: OnceCell<Grid> = OnceCell::new();
+static ACTIVE_PROFILE: OnceCell<String> = OnceCell::new();
 
 /// Runs the program
 pub fn run() -> Result {
-	let receiver = &CHANNEL.1.clone();
-	let sender = &CHANNEL.0.clone();
+	ACTIVE_PROFILE.set("Default".to_string()).unwrap();
+	let config = CONFIG.get_or_init(|| Config::load().unwrap());
+	let channel = CHANNEL.get_or_init(unbounded);
+	let mut grid = unsafe {
+		GRID.set(Grid::from(config)).unwrap();
+		GRID.get_mut().unwrap()
+	};
+
+	let receiver = channel.1.clone();
+	let sender = channel.0.clone();
 
 	let close_channel = bounded::<()>(3);
-
-	let config = CONFIG.lock().unwrap().clone();
 
 	for keybind in &config.keybinds {
 		spawn_hotkey_thread(&keybind.hotkey, keybind.typ);
@@ -78,7 +73,7 @@ pub fn run() -> Result {
 					Message::GridWindow(window) => {
 						grid_window = Some(window);
 
-						let mut grid = GRID.lock().unwrap();
+						let mut grid = unsafe{GRID.get_mut().unwrap()};
 
 						grid.grid_window = Some(window);
 						grid.active_window = Some(get_foreground_window());
@@ -111,20 +106,20 @@ pub fn run() -> Result {
 						track_mouse = false;
 					}
 					Message::ActiveWindowChange(window) => {
-						let mut grid = GRID.lock().unwrap();
+						let mut grid = unsafe{GRID.get_mut().unwrap()};
 
 						if grid.grid_window != Some(window) && grid.active_window != Some(window) {
 							grid.active_window = Some(window);
 						}
 					}
 					Message::MonitorChange => {
-						let mut grid = GRID.lock().unwrap();
+						let mut grid = unsafe{GRID.get_mut().unwrap()};
 
 						let active_window = grid.active_window;
 						let previous_resize = grid.previous_resize;
 						let quick_resize = grid.quick_resize;
 
-						*grid = Grid::from(&*CONFIG.lock().unwrap());
+						*grid = Grid::from(config);
 
 						grid.grid_window = grid_window;
 						grid.active_window = active_window;
@@ -134,32 +129,13 @@ pub fn run() -> Result {
 						grid.reposition();
 					}
 					Message::ProfileChange(profile) => {
-						{
-							let mut active_profile = ACTIVE_PROFILE.lock().unwrap();
-							*active_profile = profile.to_owned();
-						}
-
-						let mut grid = GRID.lock().unwrap();
-
-						let active_window = grid.active_window;
-						let previous_resize = grid.previous_resize;
-						let quick_resize = grid.quick_resize;
-
-						*grid = Grid::from(&*CONFIG.lock().unwrap());
-
-						grid.grid_window = grid_window;
-						grid.active_window = active_window;
-						grid.previous_resize = previous_resize;
-						grid.quick_resize = quick_resize;
-
-						grid.reposition();
+						todo!()
 					}
 					Message::InitializeWindows => {
-						let mut grid = GRID.lock().unwrap();
 						let quick_resize = grid.quick_resize;
 						let previous_resize = grid.previous_resize;
 
-						*grid = Grid::from(&*CONFIG.lock().unwrap());
+						*grid = Grid::from(config);
 
 						grid.quick_resize = quick_resize;
 						grid.previous_resize = previous_resize;
@@ -173,8 +149,6 @@ pub fn run() -> Result {
 						for _ in 0..4 {
 							let _ = close_channel.0.send(());
 						}
-
-						let mut grid = GRID.lock().unwrap();
 
 						grid.reset();
 						track_mouse = false;

@@ -49,7 +49,7 @@ pub fn spawn_foreground_hook(close_msg: Receiver<()>) {
 /// Keeps track of which monitor is active
 pub fn spawn_track_monitor_thread(close_msg: Receiver<()>) {
 	thread::spawn(move || unsafe {
-		let sender = &CHANNEL.0.clone();
+		let sender = CHANNEL.get().unwrap().0.clone();
 
 		let mut previous_monitor = get_active_monitor_name();
 
@@ -81,6 +81,6 @@ unsafe extern "system" fn callback(
 	_: DWORD,
 	_: DWORD,
 ) {
-	let sender = &CHANNEL.0.clone();
+	let sender = CHANNEL.get().unwrap().0.clone();
 	let _ = sender.send(Message::ActiveWindowChange(Window(hwnd)));
 }
