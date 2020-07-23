@@ -18,7 +18,7 @@ use winapi::{
 };
 
 // TODO figure out what this does
-/// 
+///
 pub fn spawn_foreground_hook(close_msg: Receiver<()>) {
 	thread::spawn(move || unsafe {
 		SetWinEventHook(

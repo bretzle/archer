@@ -1,4 +1,4 @@
-//! Wtm 
+//! Wtm
 //! Window(s) Tiling Manager
 //!
 //! A simple tiling manager that works natively for Windows

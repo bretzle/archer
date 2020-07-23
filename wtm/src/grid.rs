@@ -14,7 +14,7 @@ use tile::*;
 use winapi::um::winuser::{BeginPaint, EndPaint, PAINTSTRUCT};
 
 //TODO document this better
-/// The grid! 
+/// The grid!
 pub struct Grid {
 	/// is the Shift key down
 	pub shift_down: bool,
