@@ -31,11 +31,9 @@ use winapi::um::winuser::{
 static CONFIG: OnceCell<Config> = OnceCell::new();
 static CHANNEL: OnceCell<(Sender<Message>, Receiver<Message>)> = OnceCell::new();
 static mut GRID: OnceCell<Grid> = OnceCell::new();
-static ACTIVE_PROFILE: OnceCell<String> = OnceCell::new();
 
 /// Runs the program
 pub fn run() -> Result {
-	ACTIVE_PROFILE.set("Default".to_string()).unwrap();
 	let config = CONFIG.get_or_init(|| Config::load().unwrap());
 	let channel = CHANNEL.get_or_init(unbounded);
 	let mut grid = unsafe {
@@ -128,7 +126,7 @@ pub fn run() -> Result {
 
 						grid.reposition();
 					}
-					Message::ProfileChange(profile) => {
+					Message::ProfileChange(_) => {
 						todo!()
 					}
 					Message::InitializeWindows => {

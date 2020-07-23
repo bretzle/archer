@@ -1,6 +1,6 @@
 //! Grid module
 
-mod config;
+// mod config;
 mod tile;
 
 use crate::{
@@ -8,7 +8,7 @@ use crate::{
 	util::{get_work_area, Rect},
 	window::Window,
 };
-use config::*;
+// use config::*;
 use std::mem;
 use tile::*;
 use winapi::um::winuser::{BeginPaint, EndPaint, PAINTSTRUCT};
@@ -39,8 +39,8 @@ pub struct Grid {
 	zone_margins: u8,
 	border_margins: u8,
 	tiles: Vec<Vec<Tile>>, // tiles[row][column]
-	active_config: GridConfigKey,
-	configs: GridConfigs,
+	// active_config: GridConfigKey,
+	// configs: GridConfigs,
 }
 
 impl Grid {
@@ -63,18 +63,18 @@ impl Grid {
 	}
 
 	fn save_config(&mut self) {
-		let rows = self.rows();
-		let columns = self.columns();
+		// let rows = self.rows();
+		// let columns = self.columns();
 
-		if let Some(grid_config) = self.configs.get_mut(&self.active_config) {
-			grid_config.rows = rows;
-			grid_config.columns = columns;
-		} else {
-			self.configs
-				.insert(self.active_config.clone(), GridConfig { rows, columns });
-		}
+		// if let Some(grid_config) = self.configs.get_mut(&self.active_config) {
+		// 	grid_config.rows = rows;
+		// 	grid_config.columns = columns;
+		// } else {
+		// 	self.configs
+		// 		.insert(self.active_config.clone(), GridConfig { rows, columns });
+		// }
 
-		self.configs.save();
+		// self.configs.save();
 	}
 
 	/// Get the dimensions of the grid window
@@ -376,13 +376,13 @@ impl Grid {
 
 impl Default for Grid {
 	fn default() -> Self {
-		let configs = GridConfigs::load();
-		let active_config = GridConfigKey::default();
+		// let configs = GridConfigs::load();
+		// let active_config = GridConfigKey::default();
 
-		let default_config = configs.get(&active_config).cloned().unwrap_or_default();
+		// let default_config = configs.get(&active_config).cloned().unwrap_or_default();
 
-		let rows = default_config.rows;
-		let columns = default_config.columns;
+		let rows = 2;
+		let columns = 2;
 
 		Grid {
 			shift_down: false,
@@ -398,8 +398,8 @@ impl Default for Grid {
 			zone_margins: 10,
 			border_margins: 10,
 			tiles: vec![vec![Tile::default(); columns]; rows],
-			active_config,
-			configs,
+			// active_config,
+			// configs,
 		}
 	}
 }
