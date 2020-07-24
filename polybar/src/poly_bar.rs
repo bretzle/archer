@@ -202,11 +202,10 @@ impl PolyBar {
 
 			thread::spawn(move || loop {
 				thread::sleep(component.interval());
-				if *&self.window.is_none() {
+				if self.window.is_none() {
 					break;
 				}
-				&self
-					.channel
+				self.channel
 					.sender
 					.send(Event::RedrawAppBar(component.reason()))
 					.expect("Failed to send redraw event");

@@ -90,7 +90,7 @@ unsafe extern "system" fn callback(
 
 	let repaint = match msg {
 		WM_PAINT => {
-			&mut INSTANCE.get_mut().unwrap().grid.draw(Window(hwnd));
+			INSTANCE.get_mut().unwrap().grid.draw(Window(hwnd));
 			false
 		}
 		WM_KEYDOWN => match wparam as i32 {
@@ -108,15 +108,15 @@ unsafe extern "system" fn callback(
 			}
 			VK_RIGHT => {
 				if INSTANCE.get().unwrap().grid.control_down {
-					&mut INSTANCE.get_mut().unwrap().grid.add_column();
-					&mut INSTANCE.get_mut().unwrap().grid.reposition();
+					INSTANCE.get_mut().unwrap().grid.add_column();
+					INSTANCE.get_mut().unwrap().grid.reposition();
 				}
 				false
 			}
 			VK_LEFT => {
 				if INSTANCE.get().unwrap().grid.control_down {
-					&mut INSTANCE.get_mut().unwrap().grid.remove_column();
-					&mut INSTANCE.get_mut().unwrap().grid.reposition();
+					INSTANCE.get_mut().unwrap().grid.remove_column();
+					INSTANCE.get_mut().unwrap().grid.reposition();
 				}
 				false
 			}

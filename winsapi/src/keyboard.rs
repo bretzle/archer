@@ -21,7 +21,7 @@ struct HotkeyDef<ID> {
 	key_combination: KeyCombination,
 }
 
-#[derive(Clone)]
+#[derive(Clone, Default)]
 pub struct GlobalHotkeySet<ID> {
 	hotkey_defs: Vec<HotkeyDef<ID>>,
 	hotkeys_active: bool,
@@ -65,7 +65,7 @@ where
 						match register_hotkey(curr_id, hotkey_def) {
 							Ok(_) => Ok(()),
 							Err(e) => {
-								(Self::MIN_ID..=curr_id - 1).rev().for_each(|id| unsafe {
+								(Self::MIN_ID..curr_id).rev().for_each(|id| unsafe {
 									UnregisterHotKey(ptr::null_mut(), id)
 										.if_null_panic("Cannot unregister hotkey");
 								});
@@ -309,6 +309,7 @@ where
 	}
 }
 
+#[allow(clippy::suspicious_arithmetic_impl)]
 impl<T2> Add<T2> for ModifierCombination
 where
 	T2: Into<ModifierCombination>,

@@ -44,14 +44,10 @@ impl DeviceContext {
 
 	pub fn get_text_extent(&self, text: String) -> WinApiResult<SIZE> {
 		let mut size = SIZE::default();
+		let string = CString::new(text.clone()).unwrap();
 		unsafe {
-			GetTextExtentPoint32A(
-				self.hdc,
-				CString::new(text.clone()).unwrap().as_ptr(),
-				text.len() as i32,
-				&mut size,
-			)
-			.as_result()?;
+			GetTextExtentPoint32A(self.hdc, string.as_ptr(), text.len() as i32, &mut size)
+				.as_result()?;
 		}
 		Ok(size)
 	}

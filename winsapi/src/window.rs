@@ -35,18 +35,20 @@ impl Window {
 	}
 
 	/// Get's info about the window
-	pub unsafe fn info(self) -> WindowInfo {
-		let mut info: WINDOWINFO = mem::zeroed();
-		info.cbSize = mem::size_of::<WINDOWINFO>() as u32;
+	pub fn info(self) -> WindowInfo {
+		unsafe {
+			let mut info: WINDOWINFO = mem::zeroed();
+			info.cbSize = mem::size_of::<WINDOWINFO>() as u32;
 
-		GetWindowInfo(self.0, &mut info);
+			GetWindowInfo(self.0, &mut info);
 
-		info.into()
+			info.into()
+		}
 	}
 
 	/// Get's the dimensions of the window without the border
 	pub fn transparent_border(self) -> (i32, i32) {
-		let info = unsafe { self.info() };
+		let info = self.info();
 
 		let x = {
 			(info.window_rect.x - info.client_rect.x) + (info.window_rect.w - info.client_rect.w)
