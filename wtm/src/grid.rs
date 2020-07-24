@@ -1,10 +1,7 @@
 //! Grid module
 
-// mod config;
 mod tile;
 
-use crate::config::Config;
-// use config::*;
 use std::mem;
 use tile::*;
 use winapi::um::winuser::{BeginPaint, EndPaint, PAINTSTRUCT};
@@ -55,21 +52,6 @@ impl Grid {
 				tile.hovered = false;
 			})
 		});
-	}
-
-	fn save_config(&mut self) {
-		// let rows = self.rows();
-		// let columns = self.columns();
-
-		// if let Some(grid_config) = self.configs.get_mut(&self.active_config) {
-		// 	grid_config.rows = rows;
-		// 	grid_config.columns = columns;
-		// } else {
-		// 	self.configs
-		// 		.insert(self.active_config.clone(), GridConfig { rows, columns });
-		// }
-
-		// self.configs.save();
 	}
 
 	/// Get the dimensions of the grid window
@@ -123,7 +105,6 @@ impl Grid {
 	/// Adds a row to the grid
 	pub fn add_row(&mut self) {
 		self.tiles.push(vec![Tile::default(); self.columns()]);
-		self.save_config();
 	}
 
 	/// Adds a column to the grid
@@ -131,7 +112,6 @@ impl Grid {
 		for row in self.tiles.iter_mut() {
 			row.push(Tile::default());
 		}
-		self.save_config();
 	}
 
 	/// Removes a row from the grid
@@ -139,7 +119,6 @@ impl Grid {
 		if self.rows() > 1 {
 			self.tiles.pop();
 		}
-		self.save_config();
 	}
 
 	/// Removes a column from the grid
@@ -149,7 +128,6 @@ impl Grid {
 				row.pop();
 			}
 		}
-		self.save_config();
 	}
 
 	fn tile_area(&self, row: usize, column: usize) -> Rect {
@@ -358,11 +336,6 @@ impl Grid {
 
 impl Default for Grid {
 	fn default() -> Self {
-		// let configs = GridConfigs::load();
-		// let active_config = GridConfigKey::default();
-
-		// let default_config = configs.get(&active_config).cloned().unwrap_or_default();
-
 		let rows = 2;
 		let columns = 2;
 
@@ -380,18 +353,6 @@ impl Default for Grid {
 			zone_margins: 10,
 			border_margins: 10,
 			tiles: vec![vec![Tile::default(); columns]; rows],
-			// active_config,
-			// configs,
-		}
-	}
-}
-
-impl From<&Config> for Grid {
-	fn from(config: &Config) -> Self {
-		Grid {
-			zone_margins: config.margin,
-			border_margins: config.padding,
-			..Default::default()
 		}
 	}
 }

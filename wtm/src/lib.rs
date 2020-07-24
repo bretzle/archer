@@ -6,17 +6,15 @@
 mod config;
 mod event;
 mod grid;
-mod hotkey;
 mod window;
 
 use crate::{
 	config::Config,
-	event::{spawn_foreground_hook, spawn_track_monitor_thread, Event},
+	event::{spawn_foreground_hook, spawn_track_monitor_thread, Event, HotkeyType},
 	grid::Grid,
-	hotkey::HotkeyType::{Main, QuickResize},
 	window::{spawn_grid_window, spawn_preview_window},
 };
-use crossbeam_channel::{bounded, select};
+use crossbeam_channel::select;
 use once_cell::sync::OnceCell;
 use std::mem;
 use winapi::um::winuser::{
@@ -26,11 +24,31 @@ use winsapi::{EventChannel, GlobalHotkeySet, Key, Modifier, Window};
 
 static mut INSTANCE: OnceCell<TilingManager> = OnceCell::new();
 
-#[derive(Debug, Default)]
+#[derive(Debug)]
 pub struct TilingManager {
 	config: Config,
 	channel: EventChannel<Event>,
 	grid: Grid,
+
+	preview_window: Option<Window>,
+	grid_window: Option<Window>,
+	track_mouse: bool,
+
+	close_channel: EventChannel<()>,
+}
+
+impl Default for TilingManager {
+	fn default() -> Self {
+		Self {
+			config: Default::default(),
+			channel: Default::default(),
+			grid: Default::default(),
+			preview_window: Default::default(),
+			grid_window: Default::default(),
+			track_mouse: Default::default(),
+			close_channel: EventChannel::bounded(3),
+		}
+	}
 }
 
 impl TilingManager {
@@ -46,137 +64,115 @@ impl TilingManager {
 		}
 	}
 
-	pub fn start(&'static self) {
-		println!("Starting tiling manager");
-		run();
-	}
-}
+	pub fn start(&'static mut self) {
+		let receiver = self.channel.receiver.clone();
 
-/// Runs the program
-fn run() {
-	let config = unsafe { &INSTANCE.get().unwrap().config };
-	let channel = unsafe { &INSTANCE.get().unwrap().channel };
-	let mut grid = unsafe { &mut INSTANCE.get_mut().unwrap().grid };
+		self.setup_hotkeys();
 
-	let receiver = channel.receiver.clone();
-	let sender = channel.sender.clone();
-
-	let close_channel = bounded::<()>(3);
-
-	let hotkeys = GlobalHotkeySet::new()
-		.add_global_hotkey(
-			Event::HotkeyPressed(QuickResize),
-			Modifier::Ctrl + Modifier::Alt + Key::Q,
-		)
-		.add_global_hotkey(
-			Event::HotkeyPressed(Main),
-			Modifier::Ctrl + Modifier::Alt + Key::S,
-		);
-
-	channel.listen_for_hotkeys(hotkeys);
-
-	let mut preview_window: Option<Window> = None;
-	let mut grid_window: Option<Window> = None;
-	let mut track_mouse = false;
-
-	log::info!("{:#?}", config);
-
-	loop {
-		select! {
-			recv(receiver) -> msg => {
-				match msg.unwrap() {
-					Event::PreviewWindow(window) => unsafe {
-						preview_window = Some(window);
-
-						spawn_foreground_hook(close_channel.1.clone());
-
-						ShowWindow(grid_window.as_ref().unwrap().0, SW_SHOW);
-						SetForegroundWindow(grid_window.as_ref().unwrap().0);
-					}
-					Event::GridWindow(window) => {
-						grid_window = Some(window);
-
-						let mut grid = unsafe{&mut INSTANCE.get_mut().unwrap().grid};
-
-						grid.grid_window = Some(window);
-						grid.active_window = Some(Window::get_foreground_window());
-
-						spawn_track_monitor_thread(close_channel.1.clone());
-						spawn_preview_window(close_channel.1.clone());
-					}
-					Event::HighlightZone(rect) => {
-						let mut preview_window = preview_window.unwrap_or_default();
-						let grid_window = grid_window.unwrap_or_default();
-
-						preview_window.set_pos(rect, Some(grid_window));
-					}
-					Event::HotkeyPressed(hotkey_type) => {
-						hotkey::handle(hotkey_type, &sender, &preview_window, &grid_window);
-					}
-					Event::TrackMouse(window) => unsafe {
-						if !track_mouse {
-							let mut event_track: TRACKMOUSEEVENT = mem::zeroed();
-							event_track.cbSize = mem::size_of::<TRACKMOUSEEVENT>() as u32;
-							event_track.dwFlags = TME_LEAVE;
-							event_track.hwndTrack = window.0;
-
-							TrackMouseEvent(&mut event_track);
-
-							track_mouse = true;
-						}
-					}
-					Event::MouseLeft => {
-						track_mouse = false;
-					}
-					Event::ActiveWindowChange(window) => {
-						let mut grid = unsafe{&mut INSTANCE.get_mut().unwrap().grid};
-
-						if grid.grid_window != Some(window) && grid.active_window != Some(window) {
-							grid.active_window = Some(window);
-						}
-					}
-					Event::MonitorChange => {
-						let mut grid = unsafe{&mut INSTANCE.get_mut().unwrap().grid};
-
-						let active_window = grid.active_window;
-						let previous_resize = grid.previous_resize;
-						let quick_resize = grid.quick_resize;
-
-						*grid = Grid::from(config);
-
-						grid.grid_window = grid_window;
-						grid.active_window = active_window;
-						grid.previous_resize = previous_resize;
-						grid.quick_resize = quick_resize;
-
-						grid.reposition();
-					}
-					Event::ProfileChange(_) => {
-						todo!()
-					}
-					Event::InitializeWindows => {
-						let quick_resize = grid.quick_resize;
-						let previous_resize = grid.previous_resize;
-
-						*grid = Grid::from(config);
-
-						grid.quick_resize = quick_resize;
-						grid.previous_resize = previous_resize;
-
-						spawn_grid_window(close_channel.1.clone());
-					}
-					Event::CloseWindows => {
-						preview_window.take();
-						grid_window.take();
-
-						for _ in 0..4 {
-							let _ = close_channel.0.send(());
-						}
-
-						grid.reset();
-						track_mouse = false;
-					}
+		loop {
+			select! {
+				recv(receiver) -> msg => {
+					self.handle_event(msg.unwrap());
 				}
+			}
+		}
+	}
+
+	fn setup_hotkeys(&'static self) {
+		let hotkeys = GlobalHotkeySet::new()
+			.add_global_hotkey(
+				Event::HotkeyPressed(HotkeyType::QuickResize),
+				Modifier::Ctrl + Modifier::Alt + Key::Q,
+			)
+			.add_global_hotkey(
+				Event::HotkeyPressed(HotkeyType::Main),
+				Modifier::Ctrl + Modifier::Alt + Key::S,
+			);
+
+		self.channel.listen_for_hotkeys(hotkeys);
+	}
+
+	fn handle_event(&'static self, msg: Event) {
+		let tm = unsafe { INSTANCE.get_mut().unwrap() };
+
+		match msg {
+			Event::PreviewWindow(window) => unsafe {
+				tm.preview_window = Some(window);
+
+				spawn_foreground_hook(self.close_channel.receiver.clone());
+
+				ShowWindow(self.grid_window.as_ref().unwrap().0, SW_SHOW);
+				SetForegroundWindow(self.grid_window.as_ref().unwrap().0);
+			},
+			Event::GridWindow(window) => {
+				tm.grid_window = Some(window);
+
+				let mut grid = unsafe { &mut INSTANCE.get_mut().unwrap().grid };
+
+				grid.grid_window = Some(window);
+				grid.active_window = Some(Window::get_foreground_window());
+
+				spawn_track_monitor_thread(self.close_channel.receiver.clone());
+				spawn_preview_window(self.close_channel.receiver.clone());
+			}
+			Event::HighlightZone(rect) => {
+				let mut preview_window = self.preview_window.unwrap_or_default();
+				let grid_window = self.grid_window.unwrap_or_default();
+
+				preview_window.set_pos(rect, Some(grid_window));
+			}
+			Event::HotkeyPressed(hotkey_type) => self.handle_hotkey(hotkey_type),
+			Event::TrackMouse(window) => unsafe {
+				if !self.track_mouse {
+					let mut event_track: TRACKMOUSEEVENT = mem::zeroed();
+					event_track.cbSize = mem::size_of::<TRACKMOUSEEVENT>() as u32;
+					event_track.dwFlags = TME_LEAVE;
+					event_track.hwndTrack = window.0;
+
+					TrackMouseEvent(&mut event_track);
+
+					tm.track_mouse = true;
+				}
+			},
+			Event::MouseLeft => tm.track_mouse = false,
+			Event::ActiveWindowChange(window) => {
+				if self.grid.grid_window != Some(window) && self.grid.active_window != Some(window)
+				{
+					tm.grid.active_window = Some(window);
+				}
+			}
+			Event::MonitorChange => {
+				tm.grid.grid_window = self.grid_window;
+				tm.grid.reposition();
+			}
+			Event::ProfileChange(_) => todo!(),
+			Event::InitializeWindows => spawn_grid_window(self.close_channel.receiver.clone()),
+			Event::CloseWindows => {
+				tm.preview_window.take();
+				tm.grid_window.take();
+
+				for _ in 0..4 {
+					let _ = self.close_channel.sender.send(());
+				}
+
+				tm.grid.reset();
+				tm.track_mouse = false;
+			}
+		}
+	}
+
+	fn handle_hotkey(&'static self, hotkey: HotkeyType) {
+		match hotkey {
+			HotkeyType::Main => {
+				if self.preview_window.is_some() && self.grid_window.is_some() {
+					let _ = self.channel.sender.send(Event::CloseWindows);
+				} else {
+					let _ = self.channel.sender.send(Event::InitializeWindows);
+				}
+			}
+			HotkeyType::QuickResize => {
+				let _ = self.channel.sender.send(Event::InitializeWindows);
+				unsafe { INSTANCE.get_mut().unwrap().grid.quick_resize = true };
 			}
 		}
 	}

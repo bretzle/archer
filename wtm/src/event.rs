@@ -1,6 +1,6 @@
 //! Event module
 
-use crate::{hotkey::HotkeyType, INSTANCE};
+use crate::INSTANCE;
 use crossbeam_channel::{select, Receiver};
 use std::{mem, ptr, thread, time::Duration};
 use winapi::{
@@ -43,6 +43,15 @@ pub enum Event {
 	InitializeWindows,
 	/// Close the windows drawn by wtm
 	CloseWindows,
+}
+
+/// The Commands that a keybind can execute
+#[derive(PartialEq, Clone, Copy, Debug)]
+pub enum HotkeyType {
+	/// Open the grid window and resize as many windows until executed again
+	Main,
+	/// Quick Resize the current window
+	QuickResize,
 }
 
 // TODO figure out what this does
