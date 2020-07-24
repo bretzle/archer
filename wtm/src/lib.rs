@@ -3,20 +3,18 @@
 //!
 //! A simple tiling manager that works natively for Windows
 
-mod config;
 mod event;
 mod grid;
 mod window;
 
 use crate::{
-	config::Config,
 	event::{spawn_foreground_hook, spawn_track_monitor_thread, Event, HotkeyType},
 	grid::Grid,
 	window::{spawn_grid_window, spawn_preview_window},
 };
 use crossbeam_channel::select;
 use once_cell::sync::OnceCell;
-use std::mem;
+use std::{mem, thread};
 use winapi::um::winuser::{
 	SetForegroundWindow, ShowWindow, TrackMouseEvent, SW_SHOW, TME_LEAVE, TRACKMOUSEEVENT,
 };
@@ -26,9 +24,11 @@ static mut INSTANCE: OnceCell<TilingManager> = OnceCell::new();
 
 #[derive(Debug)]
 pub struct TilingManager {
-	config: Config,
 	channel: EventChannel<Event>,
 	grid: Grid,
+
+	margin: u8,
+	padding: u8,
 
 	preview_window: Option<Window>,
 	grid_window: Option<Window>,
@@ -40,9 +40,10 @@ pub struct TilingManager {
 impl Default for TilingManager {
 	fn default() -> Self {
 		Self {
-			config: Default::default(),
 			channel: Default::default(),
 			grid: Default::default(),
+			margin: 10,
+			padding: 10,
 			preview_window: Default::default(),
 			grid_window: Default::default(),
 			track_mouse: Default::default(),
@@ -64,18 +65,20 @@ impl TilingManager {
 		}
 	}
 
-	pub fn start(&'static mut self) {
-		let receiver = self.channel.receiver.clone();
+	pub fn start(&'static self) {
+		thread::spawn(move || {
+			let receiver = self.channel.receiver.clone();
 
-		self.setup_hotkeys();
+			self.setup_hotkeys();
 
-		loop {
-			select! {
-				recv(receiver) -> msg => {
-					self.handle_event(msg.unwrap());
+			loop {
+				select! {
+					recv(receiver) -> msg => {
+						self.handle_event(msg.unwrap());
+					}
 				}
 			}
-		}
+		});
 	}
 
 	fn setup_hotkeys(&'static self) {
